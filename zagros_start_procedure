@@ -1,0 +1,6 @@
+zagros startup:
+
+run skype
+rosrun captureSkypeChat ROS.........
+rosrun zagrosControl zagrosControl
+rosrun cameraControl cameraControl
