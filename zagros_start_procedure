@@ -1,5 +1,7 @@
 zagros startup:
 
+download the arduino code, zagros_serial_inputs to the arduino, if that is not already done.
+
 run skype
 rosrun captureSkypeChat ROS.........
 rosrun zagrosControl zagrosControl
