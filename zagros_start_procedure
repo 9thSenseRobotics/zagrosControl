@@ -1,5 +1,27 @@
 zagros startup:
 
+
+when using our own servos for pan/tilt and just a single camera, put zagros_serial_inputs_without_times into the arduino.
+
+run skype
+rosrun captureSkypeChat ROS.........
+rosrun zagrosControl zagrosControl_rampUp_with_pantilt 			(note, not zagrosControl)
+no need to run cameraControl.
+if using the create instead of the zagros base, then will also need
+roslaunch createControl createControl.launch
+
+
+if we are using our own servos and we do not need ramp_up speed control, put zagros_serial_inputs_motors_and_servos into the arduino
+run skype
+rosrun captureSkypeChat ROS.........
+rosrun zagrosControl zagrosSimpleControl			(note, not zagrosControl)
+no need to run cameraControl.
+if using the create instead of the zagros base, then will also need
+roslaunch createControl createControl.launch
+
+
+using the logitech pan/tilt camera and the zagros base
+
 download the arduino code, zagros_serial_inputs to the arduino, if that is not already done.
 
 run skype
@@ -7,11 +29,3 @@ rosrun captureSkypeChat ROS.........
 rosrun zagrosControl zagrosControl
 rosrun cameraControl cameraControl
 
-when using our own servos for pan/tilt, put zagros_serial_inputs_for_motors_and_servos into the arduino.
-
-run skype
-rosrun captureSkypeChat ROS.........
-rosrun zagrosControl zagrosSimpleControl (note, not zagrosControl)
-no need to run cameraControl.
-if using the create instead of the zagros base, then will also need
-roslaunch createControl createControl.launch

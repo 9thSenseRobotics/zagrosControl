@@ -31,3 +31,4 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 rosbuild_add_executable(zagrosSimpleControl src/zagrosSimpleControl.cpp)
 rosbuild_add_executable(zagrosControl src/zagrosControl.cpp)
+rosbuild_add_executable(zagrosControl_rampUp_with_pantilt src/zagrosControl_rampUp_with_pantilt.cpp)
