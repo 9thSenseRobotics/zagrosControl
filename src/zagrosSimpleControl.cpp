@@ -63,6 +63,8 @@ private:
   void moveForward();
   void moveBackward();
   void turn();
+  void Pan();
+  void Tilt();
   ros::NodeHandle nh_;
   ros::Subscriber skypechat_sub;
   int numSteps, cmdTime, cmdSpeed, cmdChar;
@@ -80,13 +82,16 @@ void ZagrosSkypeCmd::skypeCallback( const std_msgs::String& msgSkype)
     else if (numSteps > 5) numSteps = 5;
     for (int i = 1; i < numSteps; i++) if ( (msgSkype.data[i] != msgSkype.data[0]) && msgSkype.data[i] != msgSkype.data[0] + 32) return; 
           // if string is not all identical characters, allowing for first character to be a capital, return    
-    cmdChar = msgSkype.data[0];
-    if (cmdChar != 'W' && cmdChar != 'w' && cmdChar != 'A' && cmdChar != 'a' && cmdChar != 'S' && cmdChar != 's' && cmdChar != 'D' && cmdChar != 'd'
-    	&& cmdChar != 'U' && cmdChar != 'u'	&& cmdChar != 'H' && cmdChar != 'h' && cmdChar != 'J' && cmdChar != 'j' && cmdChar != 'K' && cmdChar != 'k' 
-    	&& cmdChar != 'N' && cmdChar != 'n'	&& cmdChar != 'M' && cmdChar != 'm' ) return;	// unrecognized command
+    cmdChar = msgSkype.data[0];   					
+    if (cmdChar != 'W' && cmdChar != 'w' && cmdChar != 'A' && cmdChar != 'a' && cmdChar != 'S' && cmdChar != 's' && cmdChar != 'D' && cmdChar != 'd')
+    { 				
+		cmdSpeed = numSteps;	// not a motor command, so it is either a servo command or a mistake.  This sets the size of the servo move.
+		if (cmdChar != 'U' && cmdChar != 'u' && cmdChar != 'H' && cmdChar != 'h' && cmdChar != 'J' && cmdChar != 'j'
+		    && cmdChar != 'K' && cmdChar != 'k' && cmdChar != 'N' && cmdChar != 'n'&& cmdChar != 'M' && cmdChar != 'm' ) return; // unknown command
+		else cmdSpeed = DEFAULT_SPEED;	// motor command
+    }   
     cmdTime = (2 * numSteps) - 1;  // numSteps here can range from 1 to 5, so we can get 1, 3, 5, 7, 9 and that is correct, since it will get 
-    				// multiplied by MIN_TIME in the arduino code    					
-    cmdSpeed = DEFAULT_SPEED;
+    				// multiplied by MIN_TIME in the arduino code 
     sendCommand();
 }
      
