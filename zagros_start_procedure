@@ -6,3 +6,12 @@ run skype
 rosrun captureSkypeChat ROS.........
 rosrun zagrosControl zagrosControl
 rosrun cameraControl cameraControl
+
+when using our own servos for pan/tilt, put zagros_serial_inputs_for_motors_and_servos into the arduino.
+
+run skype
+rosrun captureSkypeChat ROS.........
+rosrun zagrosControl zagrosSimpleControl (note, not zagrosControl)
+no need to run cameraControl.
+if using the create instead of the zagros base, then will also need
+roslaunch createControl createControl.launch
