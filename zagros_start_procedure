@@ -6,7 +6,7 @@ when using our own servos for pan/tilt, a single camera, and either the create o
  put zagros_serial_inputs_without_times into the arduino.
 
 run skype
-rosrun captureSkypeChat ROS.........
+rosrun captureSkypeChat ROS_telebot_single_cam
 
 rosrun zagrosControl zagrosServos		(note, not zagrosControl)
 rosrun zagrosControl serialCommands
@@ -25,7 +25,7 @@ using the logitech pan/tilt camera and the zagros base
 put zagros_serial_inputs_without_times into the arduino.
 
 run skype
-rosrun captureSkypeChat ROS.........
+rosrun captureSkypeChat ROS_telebot_two_cams
 rosrun zagrosControl zagrosMotors
 rosrun zagrosControl serialCommands
 rosrun cameraControl cameraControl
