@@ -29,8 +29,9 @@
 #define DirectionPinMotorA 12 //direction control for motor outputs 1 and 2 is on digital pin 12 with ardumoto shield
 #define DirectionPinMotorB 13  //direction control for motor outputs 3 and 4 is on digital pin 13 with ardumoto shield
 #define tiltPin 5
-#define panPin 7
-#define LEDpin 9  // indicator that a serial signal was received, off = waiting, on = working
+#define panPin 6
+#define powerPin 7
+#define LEDpin 8  // indicator that a serial signal was received, off = waiting, on = working
 #define SerialSpeed 9600
 #define BufferLength 16
 #define LineEndCharacter '#' // serial input commands must end with this character
@@ -180,6 +181,14 @@ void HandleCommand(char* input, int length)
       tiltPos = TILT_MAX;
       tiltServo.write(tiltPos);
       break;
+    case 'P':
+    case 'p':
+      digitalWrite(powerPin, LOW);
+      delay(500);
+      digitalWrite(powerPin,HIGH);
+      delay(500);
+      digitalWrite(powerPin,LOW);
+      break;
       
     default:
       //Serial.println("did not recognize command ");
@@ -196,6 +205,8 @@ void setup()
   pinMode(PwmPinMotorB, OUTPUT);
   pinMode(DirectionPinMotorA, OUTPUT);
   pinMode(DirectionPinMotorB, OUTPUT);
+  pinMode(LEDpin, OUTPUT); // LED indicator
+  pinMode(powerPin, OUTPUT); // when set from low to high, toggles base power
   
   go(0); //stop both motors
  
@@ -205,10 +216,11 @@ void setup()
   tiltServo.write(TILT_CENTER);
   panPos = PAN_CENTER;
   tiltPos = TILT_CENTER;
+       
+  digitalWrite(powerPin,LOW);  
+  digitalWrite(LEDpin,LOW); 
   
-  pinMode(LEDpin, OUTPUT); // LED indicator
-  
-  Serial.begin(SerialSpeed);   
+  Serial.begin(SerialSpeed);   // connect to laptop
   //Serial.println("serial connected");
 }
  
@@ -223,9 +235,9 @@ void loop()
       if (millis() - timeOutCheck > TIMED_OUT && Moving) go(0);  //if we are moving and haven't heard anything in a long time, stop moving
     }
     inputBuffer[inputLength] = Serial.read(); // read it in
-    digitalWrite(LEDpin,HIGH);  // show on LED that we are receving a serial input
   } while (inputBuffer[inputLength] != LineEndCharacter && ++inputLength < BufferLength);
   inputBuffer[inputLength] = 0; //  add null terminator
+      digitalWrite(LEDpin,HIGH);  // show on LED that we received a serial input
   //Serial.println(inputBuffer);
   HandleCommand(inputBuffer, inputLength);
 }
