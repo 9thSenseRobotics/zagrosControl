@@ -59,7 +59,7 @@
 #define MIN_MOVE_TIME 500
 #define MIN_TURN_TIME 200
 
-#define ARDUINO_FILENAME "/dev/ttyACM1"
+#define ARDUINO_FILENAME "/dev/ttyACM0"
 #define END_COMMAND_CHARACTER '#'
 
 #define RAMPUP_SPEED_DELAY 100  // controls how long between speed steps when ramping up from a stop to default speed
