@@ -211,8 +211,9 @@ void ZagrosMotorsCmd::sendCommand()
 		std_msgs::String arduinoCommand;
 		std::string cmdString;
 		cmdString = cmdChar;
-		cmdString += cmdSpeed;
-		cmdString += END_COMMAND_CHARACTER;
+		char buffer[10];
+		sprintf(buffer,"%d%c",numSteps, END_COMMAND_CHARACTER);
+		cmdString += buffer;
 		arduinoCommand.data = cmdString;
 		arduino_pub.publish(arduinoCommand);
 }

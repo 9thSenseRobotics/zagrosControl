@@ -84,8 +84,9 @@ void ZagrosServosCmd::skypeCallback( const std_msgs::String& msgSkype)
 	    || cmdChar == 'P' || cmdChar == 'p') // power toggle command
 	{
 		cmdString = cmdChar;
-		cmdString += numSteps;
-		cmdString += END_COMMAND_CHARACTER;
+		char buffer[10];
+		sprintf(buffer,"%d%c",numSteps, END_COMMAND_CHARACTER);
+		cmdString += buffer;
 		arduinoCommand.data = cmdString;
 		arduino_pub.publish(arduinoCommand);
 	}
