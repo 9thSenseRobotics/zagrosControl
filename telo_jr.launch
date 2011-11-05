@@ -1,0 +1,15 @@
+<launch> 
+  
+  <node pkg="captureSkypeChat" type="ROS_telebot_single_cam.py" name="ROS_skype"
+  </node>
+  
+  <node pkg="zagrosControl" type="zagrosMotors" name="zagrosMotors" >
+  </node>
+  
+  <node pkg="zagrosControl" type="zagrosServos" name="zagrosServos" >
+  </node>
+  
+  <node pkg="zagrosControl" type="serialCommands" name="serialCommands" >
+  </node>
+  
+</launch>

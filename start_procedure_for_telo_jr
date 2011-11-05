@@ -1,0 +1,4 @@
+telo_jr startup:
+
+run skype
+roslaunch telo_jr.launch
