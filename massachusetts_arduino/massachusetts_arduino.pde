@@ -42,6 +42,7 @@
 #define TILT_CENTER 70
 #define TILT_MIN 35
 #define TILT_MAX 180
+#define TILT_CHECK_PATH 150
 #define TILT_DELTA 10
 
 #define PAN_CENTER 85
@@ -152,14 +153,14 @@ void HandleCommand(char* input, int length)
       panPos = PAN_CENTER;
       tiltPos = TILT_CENTER;
       break;
-    case 'N':    // tilt up
-    case 'n':
+    case 'U':    // tilt up
+    case 'u':
       if (tiltPos - (TILT_DELTA * stepsToGo) >= TILT_MIN) tiltPos -= TILT_DELTA * stepsToGo;
       else tiltPos = TILT_MIN;
       tiltServo.write(tiltPos);
       break;
-    case 'U':    // tilt down
-    case 'u':
+    case 'N':    // tilt down
+    case 'n':
       if (tiltPos + (TILT_DELTA * stepsToGo) <= TILT_MAX) tiltPos += TILT_DELTA * stepsToGo;
       else tiltPos = TILT_MAX;
       tiltServo.write(tiltPos);
@@ -178,7 +179,7 @@ void HandleCommand(char* input, int length)
       break;
     case 'M':    // tilt max down
     case 'm':
-      tiltPos = TILT_MIN;
+      tiltPos = TILT_CHECK_PATH;
       tiltServo.write(tiltPos);
       break;
     case 'P':
