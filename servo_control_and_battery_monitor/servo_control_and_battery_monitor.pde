@@ -60,14 +60,14 @@ int panPos, tiltPos;    // variable to store the servo position
 char inputBuffer[BufferLength];
 bool Moving;
 long timeOutCheck;
-int batteryMonitor, batteryMonitorPin;
+int batteryMonitorPin;
 float batteryRange;
 
-int checkBattery()
+char checkBattery()
 {
   float voltage =  (float) ((analogRead(batteryMonitorPin) / 1023.) * 5.0 ) * VOLTAGE_DIVIDER_RATIO;
-  int batteryPercent =  (int) ( 100. * ( ( voltage - ZERO_PERCENT_BATTERY_VOLTAGE) / batteryRange)); // returns percentage
-  if (batteryPercent > 100) return 100;
+  char batteryPercent =  (char) ( 100. * ( ( voltage - ZERO_PERCENT_BATTERY_VOLTAGE) / batteryRange)); // returns percentage
+  if (batteryPercent > 99) return 99;
   if (batteryPercent < 0) return 0;
   return batteryPercent;  
 } 
@@ -209,8 +209,7 @@ void HandleCommand(char* input, int length)
       
     case 'B':
     case 'b':
-      batteryMonitor = checkBattery();
-      Serial.print(batteryMonitor, BYTE);
+      Serial.print(checkBattery(), BYTE);
       break;
       
     default:
@@ -260,13 +259,7 @@ void loop()
   do {
     while (!Serial.available()) // wait for input
     {
-      if (millis() - timeOutCheck > TIMED_OUT)
-      {
-        if (Moving) go(0);  //if we are moving and haven't heard anything in a long time, stop moving
-        batteryMonitor = checkBattery(); 
-        Serial.print(batteryMonitor, BYTE); // ok to send as a isngle byte, as the value is between 0 and 100
-        timeOutCheck = millis();
-      }
+      if (millis() - timeOutCheck > TIMED_OUT && Moving) go(0);
     }
     inputBuffer[inputLength] = Serial.read(); // read it in
   } while (inputBuffer[inputLength] != LineEndCharacter && ++inputLength < BufferLength);
