@@ -53,7 +53,7 @@
 #define BATTERY_MONITOR_PIN A0
 #define ZERO_PERCENT_BATTERY_VOLTAGE 11.5
 #define FULL_BATTERY_VOLTAGE 13.5
-#define VOLTAGE_DIVIDER_RATIO 2.0
+#define VOLTAGE_DIVIDER_RATIO 2.844
 
 Servo panServo, tiltServo;  // create servo objects to control the servos
 int panPos, tiltPos;    // variable to store the servo position 
