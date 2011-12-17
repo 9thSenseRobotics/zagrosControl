@@ -68,12 +68,20 @@ long timeOutCheck;
 
 bool stopIfFault()
 {
-  if (motorDriver.getM1Fault() || motorDriver.getM2Fault())
+  bool result = false;
+  if (motorDriver.getM1Fault())
   {
       motorDriver.setSpeeds(0,0);
-      return true;
+      Serial.println("Fault detected in Motor 1 ");
+      result = true;
   }
-  return false;
+  if (motorDriver.getM2Fault())
+  {
+      motorDriver.setSpeeds(0,0);
+      Serial.println("Fault detected in Motor 2 ");
+      result = true;
+  }
+  return result;
 }
 
 void coast()
@@ -88,9 +96,10 @@ void brakes()
 
 void move(int speed) // speed goes from 0 to 255
 {
-  //Serial.println("moving, speed = ");
-  //Serial.println(speed);
-  motorDriver.setSpeeds(speed, -speed);
+  Serial.println("moving, speed = ");
+  Serial.println(speed);
+  motorDriver.setM1Speed(speed);
+  motorDriver.setM2Speed(-speed);
   if (speed == 0 || stopIfFault()) Moving = false;
   else Moving = true;
   timeOutCheck = millis();
@@ -98,7 +107,7 @@ void move(int speed) // speed goes from 0 to 255
 
 void turn(int speed) // speed goes from 0 to 255
 {
-  //Serial.println("turning ");
+  Serial.println("turning ");
   motorDriver.setSpeeds(speed,speed);
   if (speed == 0 || stopIfFault()) Moving = false;
   else Moving = true;
