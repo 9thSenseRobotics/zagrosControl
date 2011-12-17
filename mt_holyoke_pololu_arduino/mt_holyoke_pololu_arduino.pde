@@ -94,7 +94,7 @@ void brakes()
   motorDriver.setBrakes(255,255);
 }
 
-void move(int speed) // speed goes from 0 to 255
+void move(int speed) // speed goes from -255 to 255
 {
   Serial.println("moving, speed = ");
   Serial.println(speed);
@@ -105,7 +105,7 @@ void move(int speed) // speed goes from 0 to 255
   timeOutCheck = millis();
 }
 
-void turn(int speed) // speed goes from 0 to 255
+void turn(int speed) // speed goes from -255 to 255
 {
   Serial.println("turning ");
   motorDriver.setSpeeds(speed,speed);
@@ -152,11 +152,11 @@ void HandleCommand(char* input, int length)
       break;
     case 'D':    // turn right
     case 'd':
-      turn(speedToGo);
+      turn(-speedToGo);
       break;
     case 'A':    // turn left
     case 'a':
-      turn(-speedToGo);
+      turn(speedToGo);
       break;
     case 'X':    // stop
     case 'x':
