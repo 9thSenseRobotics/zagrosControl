@@ -1,7 +1,7 @@
 #ifndef DualVNH5019MotorShield_h
 #define DualVNH5019MotorShield_h
 
-#include <WProgram.h>
+#include <Arduino.h>
 
 class DualVNH5019MotorShield
 {
