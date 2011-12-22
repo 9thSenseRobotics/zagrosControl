@@ -1,3 +1,4 @@
+
 // accepts serial port inputs and responds with moves
 
 // command form is a letter for direction:
@@ -39,13 +40,13 @@
 #define TIMED_OUT 8000
 #define DEFAULT_SPEED 255
 
-#define TILT_CENTER 70
+#define TILT_CENTER 55
 #define TILT_MIN 35
 #define TILT_MAX 180
 #define TILT_CHECK_PATH 150
 #define TILT_DELTA 10
 
-#define PAN_CENTER 85
+#define PAN_CENTER 95
 #define PAN_MIN 0
 #define PAN_MAX 180
 #define PAN_DELTA 10
