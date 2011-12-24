@@ -7,8 +7,8 @@ class VNH5019_motor_driver
 {
   public:  
     // CONSTRUCTORS
-    DualVNH5019MotorShield(); // Default pin selection.
-    DualVNH5019MotorShield(unsigned char INA1, unsigned char INB1, unsigned char EN1DIAG1, unsigned char CS1, 
+    VNH5019_motor_driver(); // Default pin selection.
+    VNH5019_motor_driver(unsigned char INA1, unsigned char INB1, unsigned char EN1DIAG1, unsigned char CS1, 
                            unsigned char INA2, unsigned char INB2, unsigned char EN2DIAG2, unsigned char CS2); // User-defined pin selection. 
     
     // PUBLIC METHODS
