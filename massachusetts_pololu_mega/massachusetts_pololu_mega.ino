@@ -39,30 +39,59 @@
 // motor1 current out pin A0
 // motor2 current out pin A1
 
+// timers on the mega:
+  // timer 0 pins A,B are 13,4
+  // timer 1 pins A,B are 11,12
+  // timer 2 pins A,B are 10,9  
+  // timer 3 pins A,B,C are 5,2,3
+  // timer 4 pins A,B,C are 6,7,8
+  // timer 5 pins A,B,C are 44,45,46
+  
 #define tiltPin 3
 #define panPin 5
-#define LEDpin 13  // indicator that a serial signal was received, off = waiting, on = working
 #define SerialSpeed 9600
 #define BufferLength 16
 #define LineEndCharacter '#' // serial input commands must end with this character
 
+//encoder pins
+#define encoderLeftRed 23
+#define encoderLeftGreen 25
+#define encoderLeftYellow 27
+#define encoderLeftBlack 37
+#define encoderRightRed 29
+#define encoderRightGreen 31
+#define encoderRightYellow 33
+#define encoderRightBlack 35
+
+// multicolor LED
+#define OFF 0
+#define RED 1
+#define GREEN 2
+#define BLUE 3
+#define LEDground 47
+#define LEDgreen 49
+#define LEDblue 51
+#define LEDred 53
+
 #define TIMED_OUT 8000
 #define DEFAULT_SPEED 255
 
-#define TILT_CENTER 100
-#define TILT_MIN 45
-#define TILT_MAX 135
+#define TILT_CENTER 55
+#define TILT_LOOK_DOWN 90
+#define TILT_MIN 135
+#define TILT_MAX 40
 #define TILT_DELTA 10
 
-#define PAN_CENTER 90
+#define PAN_CENTER 93
 #define PAN_MIN 0
 #define PAN_MAX 180
 #define PAN_DELTA 10
 
-#define BATTERY_MONITOR_PIN A0
+#define BATTERY_MONITOR_PIN A8
+#define BATTERY_MONITOR_GROUND_PIN 46
 #define ZERO_PERCENT_BATTERY_VOLTAGE 11.5
 #define FULL_BATTERY_VOLTAGE 13.5
-#define VOLTAGE_DIVIDER_RATIO 2.844
+#define VOLTAGE_DIVIDER_RATIO 3.2
 
 VNH5019_motor_driver motorDriver;
 Servo panServo, tiltServo;  // create servo objects to control the servos
@@ -72,6 +101,7 @@ bool Moving;
 long timeOutCheck;
 int batteryMonitorPin;
 float batteryRange;
+volatile unsigned long encoderRight, encoderLeft;
 
 char checkBattery()
 {
@@ -82,19 +112,42 @@ char checkBattery()
   return batteryPercent;  
 } 
 
+void LEDlight(int color)
+{
+  digitalWrite(LEDred, LOW);
+  digitalWrite(LEDgreen, LOW);
+  digitalWrite(LEDblue, LOW);
+  switch (color)
+  {
+    case RED:
+      digitalWrite(LEDred, HIGH);
+      break;
+    case GREEN:
+      digitalWrite(LEDgreen, HIGH);
+      break;
+    case BLUE:
+      digitalWrite(LEDblue, HIGH);
+      break;
+    default:
+      break; 
+  }
+}
+
 bool stopIfFault()
 {
   bool result = false;
   if (motorDriver.getM1Fault())
   {
       motorDriver.setSpeeds(0,0);
-      Serial.println("Fault detected in Motor 1 ");
+      //Serial.println("Fault detected in Motor 1 ");
+      LEDlight(RED);
       result = true;
   }
   if (motorDriver.getM2Fault())
   {
       motorDriver.setSpeeds(0,0);
-      Serial.println("Fault detected in Motor 2 ");
+      //Serial.println("Fault detected in Motor 2 ");
+      LEDlight(RED);
       result = true;
   }
   return result;
@@ -112,20 +165,19 @@ void brakes()
 
 void move(int speed) // speed goes from -255 to 255
 {
-  Serial.println("moving, speed = ");
-  Serial.println(speed);
-  analogWrite(9,127);
-  //motorDriver.setM1Speed(speed);
-  //motorDriver.setM2Speed(-speed);
-  //if (speed == 0 || stopIfFault()) Moving = false;
-  //else Moving = true;
+  //Serial.println("moving, speed = ");
+  //Serial.println(speed);
+  motorDriver.setM1Speed(speed);
+  motorDriver.setM2Speed(-speed);
+  if (speed == 0 || stopIfFault()) Moving = false;
+  else Moving = true;
   timeOutCheck = millis();
 }
 
 void turn(int speed) // speed goes from -255 to 255
 {
-  Serial.println("turning, speed = ");
-  Serial.println(speed);
+  //Serial.println("turning, speed = ");
+  //Serial.println(speed);
   motorDriver.setSpeeds(speed,speed);
   if (speed == 0 || stopIfFault()) Moving = false;
   else Moving = true;
@@ -190,13 +242,13 @@ void HandleCommand(char* input, int length)
       break;
     case 'N':    // tilt up
     case 'n':
-      if (tiltPos - (TILT_DELTA * stepsToGo) >= TILT_MIN) tiltPos -= TILT_DELTA * stepsToGo;
+      if (tiltPos - (TILT_DELTA * stepsToGo) <= TILT_MIN) tiltPos += TILT_DELTA * stepsToGo;
       else tiltPos = TILT_MIN;
       tiltServo.write(tiltPos);
       break;
     case 'U':    // tilt down
     case 'u':
-      if (tiltPos + (TILT_DELTA * stepsToGo) <= TILT_MAX) tiltPos += TILT_DELTA * stepsToGo;
+      if (tiltPos + (TILT_DELTA * stepsToGo) >= TILT_MAX) tiltPos -= TILT_DELTA * stepsToGo;
       else tiltPos = TILT_MAX;
       tiltServo.write(tiltPos);
       break;
@@ -217,6 +269,16 @@ void HandleCommand(char* input, int length)
       tiltPos = TILT_MIN;
       tiltServo.write(tiltPos);
       break;
+    case 'Y':    // tilt look down
+    case 'y':
+      tiltPos = TILT_LOOK_DOWN;
+      tiltServo.write(tiltPos);
+      break;
+    case 'G':    // pan center
+    case 'g':
+      panPos = PAN_CENTER;
+      panServo.write(panPos);
+      break;
       
     /*case 'P':
     case 'p':
@@ -231,6 +293,8 @@ void HandleCommand(char* input, int length)
     case 'B':
     case 'b':
       //Serial.print(checkBattery(), BYTE); // version 1.0 does not use byte
+      Serial.write(checkBattery());
+      //Serial.write('a');
       break;
       
       default:
@@ -240,6 +304,45 @@ void HandleCommand(char* input, int length)
   //Serial.println(delayTime);
 } 
 
+void timer_setup (int timer_number, byte mode, int prescale, byte outmode_A, byte outmode_B, byte capture_mode)
+{
+  // enforce field widths for sanity
+  mode &= 15 ;
+  outmode_A &= 3 ;
+  outmode_B &= 3 ;
+  capture_mode &= 3 ;
+
+  byte clock_mode = 0 ; // 0 means no clocking - the counter is frozen.
+  switch (prescale)
+  {
+    case 1: clock_mode = 1 ; break ;
+    case 8: clock_mode = 2 ; break ;
+    case 64: clock_mode = 3 ; break ;
+    case 256: clock_mode = 4 ; break ;
+    case 1024: clock_mode = 5 ; break ;
+    default:
+      if (prescale < 0)
+        clock_mode = 7 ; // external clock
+  }
+  switch (timer_number)
+  {    
+    case 3:
+      TCCR3A = (outmode_A << 6) | (outmode_B << 4) | (mode & 3) ;
+      TCCR3B = (capture_mode << 6) | ((mode & 0xC) << 1) | clock_mode ;
+      break;     
+    case 4:
+      TCCR4A = (outmode_A << 6) | (outmode_B << 4) | (mode & 3) ;
+      TCCR4B = (capture_mode << 6) | ((mode & 0xC) << 1) | clock_mode ;
+      break;
+    case 5:
+      TCCR5A = (outmode_A << 6) | (outmode_B << 4) | (mode & 3) ;
+      TCCR5B = (capture_mode << 6) | ((mode & 0xC) << 1) | clock_mode ;
+      break;
+    default:
+      break;
+  } 
+}
+
 
 void setup()
 { 
@@ -248,9 +351,25 @@ void setup()
   //Serial.println("serial connected");
   
   motorDriver.init();
+
+  // using CTC (clear timer on compare) mode allows us to fire an interrupt when the timer overruns, so
+  // we can get an accurate value even through timer overflows
+  // The counter value (TCNTn) increases until a compare match occurs between TCNTn and OCRnA, and then counter
+  // (TCNTn) is cleared, where "n" is the timer in use.
+  // If we are never going to overflow, then just use normal mode (0)
+  timer_setup(3,4,-1,0,0,3);
+  // timer 3, mode 4 (CTC), external clock, output mode A normal, output mode B normal,
+  // capture mode = 3, so bits  6 and 7 of TCCRnB are = 1, meaning:
+  // bit 7 = 1, noise filtering is on, so 4 bits of the same value are required for a transition
+  // bit 6 = 1, rising edge is used for counting.
+  timer_setup(4,4,-1,0,0,3);
+  // need to setup the registers for when the clock resets and also record when that 
+  // happens
   
   batteryRange = FULL_BATTERY_VOLTAGE - ZERO_PERCENT_BATTERY_VOLTAGE;
   batteryMonitorPin = BATTERY_MONITOR_PIN;
+  pinMode(BATTERY_MONITOR_GROUND_PIN, OUTPUT);
+  digitalWrite(BATTERY_MONITOR_GROUND_PIN, LOW);
   
   tiltServo.attach(tiltPin); 
   panServo.attach(panPin);  // attaches the pan servo pin to the servo object
@@ -258,16 +377,64 @@ void setup()
   tiltServo.write(TILT_CENTER);
   panPos = PAN_CENTER;
   tiltPos = TILT_CENTER;
+  
+  // encoders
+  // turning on the pullups saves having to hook up resistors
+  // we can count pulses with the timers, don't need quadrature encoding,
+  // since we already know which way the motors are turning.
+  // The Input Capture Register ICR1 is a 16 bit register used to record the value of TCNT1
+  // when an external event happens - typically a change on the ICP1 pin (Arduino pin 8). Only 16 bit timers have input capture.
+  // we will use timers 2 and 3 for the encoders.
+  
+  encoderLeft = 0;
+  encoderRight = 0;
        
-  pinMode(LEDpin, OUTPUT); // LED indicator
-  digitalWrite(LEDpin,LOW); 
+  // encoders, could just tie the reds to +5, the blacks to ground
+  pinMode(encoderLeftRed, OUTPUT);
+  digitalWrite(encoderLeftRed,LOW); // this will have to drive high to turn on encoding
+  pinMode(encoderLeftGreen, INPUT);
+  digitalWrite(encoderLeftGreen, HIGH);       // turn on pullup resistor
+  pinMode(encoderLeftYellow, INPUT);
+  digitalWrite(encoderLeftYellow, HIGH);       // turn on pullup resistor
+  pinMode(encoderLeftBlack, OUTPUT);
+  digitalWrite(encoderLeftBlack,LOW);
+  
+  pinMode(encoderRightRed, OUTPUT); // this will have to drive high to turn on encoding
+  digitalWrite(encoderRightRed,LOW);
+  pinMode(encoderRightGreen, INPUT);
+  digitalWrite(encoderRightGreen, HIGH);       // turn on pullup resistor
+  pinMode(encoderRightYellow, INPUT);
+  digitalWrite(encoderRightYellow, HIGH);       // turn on pullup resistor
+  pinMode(encoderRightBlack, OUTPUT); 
+  digitalWrite(encoderRightBlack,LOW);
+  
+  // multicolor LED
+  pinMode(LEDground, OUTPUT); 
+  digitalWrite(LEDground, LOW);
+  pinMode(LEDgreen, OUTPUT);
+  digitalWrite(LEDgreen, LOW); 
+  pinMode(LEDblue, OUTPUT);
+  digitalWrite(LEDblue, LOW);
+  pinMode(LEDred, OUTPUT);
+  digitalWrite(LEDred, LOW);
+
+  
+  digitalWrite(LEDgreen, HIGH);
+  delay(1000);
+  digitalWrite(LEDgreen, LOW);
+  digitalWrite(LEDblue, HIGH);
+  delay(1000);
+  digitalWrite(LEDblue, LOW);
+  digitalWrite(LEDred, HIGH);
+  delay(1000);
+  digitalWrite(LEDred, LOW);
 }
  
 void loop()
 { 
   // get a command from the serial port
   int inputLength = 0; 
-  digitalWrite(LEDpin,LOW); // show on LED that we are waiting for a serial input
+  digitalWrite(LEDgreen,LOW); // show on LED that we are waiting for serial input
   do {
     while (!Serial.available()) // wait for input
     {
@@ -276,7 +443,7 @@ void loop()
     inputBuffer[inputLength] = Serial.read(); // read it in
   } while (inputBuffer[inputLength] != LineEndCharacter && ++inputLength < BufferLength);
   inputBuffer[inputLength] = 0; //  add null terminator
-      digitalWrite(LEDpin,HIGH);  // show on LED that we received a serial input
+      digitalWrite(LEDgreen,HIGH);  // show on LED that we received a serial input
   //Serial.println(inputBuffer);
   HandleCommand(inputBuffer, inputLength);
 }
