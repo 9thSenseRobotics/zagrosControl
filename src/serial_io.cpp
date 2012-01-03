@@ -29,7 +29,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#define ARDUINO_FILENAME "/dev/ttyACM0"
+#define ARDUINO_FILENAME_PRIMARY "/dev/ttyACM0"
+#define ARDUINO_FILENAME_SECONDARY "/dev/ttyACM1"
 
 #include <ros/ros.h>
 #include <std_msgs/String.h>
@@ -45,19 +46,57 @@ ros::Publisher  arduino_pub;
 int readSerialFromArduino()
 {
     char buf[16];
+    for (int i=0; i < 16; i++) buf[i] = 0;
+    arduinoPort = fopen (ARDUINO_FILENAME_PRIMARY, "r");
+    if (arduinoPort == NULL)
+    {
+        arduinoPort = fopen (ARDUINO_FILENAME_SECONDARY, "r");
+        if (arduinoPort == NULL)
+        {
+            std::cout << "Serial port failed to open for reading."  << std::endl;
+            return -1;
+        }
+    } 
+    //std::cout << "about to read port" << std::endl;
     int result = fread (buf,1,1,arduinoPort);
-    if (result <= 0) return -1;
+    // results contains the number of bytes read
+    // fread parameters are buf = memory block, 1 = size in bytes of each element, count = number of elements
+    // if the arduino does a Serial.println("XYZ"); then size = 1 and count = 3
+    // if the arduino does a Serial.write('A') or a Serial.print("K")
+    // followed by a Serial.println("J"); then size = 1 and count = 2
+    // but in testing, it is very robust to getting these numbers right, as long as they are
+    // at least as big as the number of bytes you want to get read in
+    //std::cout << "serial port read: " << result << std::endl;
+    if (result <= 0)
+    {
+        //fclose(arduinoPort);
+        return -1;
+    }
     fflush (arduinoPort);
-    int batteryPercent =  (int) buf[0]; //(((int)buf[0]) * 10 ) + (int) buf[1];
+    int batteryPercent =  (int) buf[0];
     std::cout << "battery percentage = " << batteryPercent << std::endl;
-    //std::cout << "buf0 = " << buf[0] << "  buf1 = " << buf[1] << std::endl;
+    //std::cout << "values = " << buf[0] << buf[1] << buf[2] << buf[3] << buf[4] << std::endl;
+
+    //fclose(arduinoPort);  //seems like this is needed, but it causes a glibc double free error
     return batteryPercent;
 }
 
 void arduinoCallback( const std_msgs::String& msgArduino)
 { 
 	char buf[16];
+	for (int i=0; i < 16; i++) buf[i] = 0;
+    arduinoPort = fopen (ARDUINO_FILENAME_PRIMARY, "w");
+    if (arduinoPort == NULL)
+    {
+        arduinoPort = fopen (ARDUINO_FILENAME_SECONDARY, "w");
+        if (arduinoPort == NULL)
+        {
+            std::cout << "Serial port failed to open for writing."  << std::endl;
+            return;
+        }
+    }
 	sprintf(buf, "%s", msgArduino.data.c_str());
+	std::cout << "sending string to serial port, string is " << msgArduino.data.c_str() << std::endl;
 	fputs(buf, arduinoPort);
 	fflush (arduinoPort);
 	char cmdChar = msgArduino.data[0];
@@ -65,13 +104,14 @@ void arduinoCallback( const std_msgs::String& msgArduino)
 	if (cmdChar == 'B' || cmdChar == 'b')   // asking for battery percentage
 	{
 	    int counter = 0;
-	    while (counter < 10)
+	    ros::Duration(0.5).sleep(); // give the arduino a moment to respond to the write request
+	    while (counter < 3)
 	    {
 	        batteryPercent = readSerialFromArduino();
 	        if (batteryPercent > -1) break;
-	        ros::Duration(0.1).sleep();
-	        std::cout << "trying to read battery percentage" << std::endl;
+	        ros::Duration(1.0).sleep();
 	        counter++;
+	        std::cout << "serial port read failed on try " << counter << std::endl;
 	     }
 	     //std::cout << "battery percentage = " << batteryPercent << std::endl;
 	     std_msgs::String arduinoCommand;
@@ -79,15 +119,15 @@ void arduinoCallback( const std_msgs::String& msgArduino)
 	     arduino_pub.publish(arduinoCommand);
 	}        
 	else ros::Duration(0.05).sleep(); // put at least 50 msec between serial port outputs
+	fclose(arduinoPort);
 }
 
 int main(int argc, char** argv)
 {
-  arduinoPort = fopen (ARDUINO_FILENAME, "r+");   
-  ros::init(argc, argv, "serialCommands");
-  ros::NodeHandle nh_;
-  ros::Subscriber arduino_sub = nh_.subscribe("arduino_commands", 60, arduinoCallback);
-  arduino_pub = nh_.advertise<std_msgs::String>("arduino_sensors", 5);
-  ros::spin();
-  fclose(arduinoPort);
+      ros::init(argc, argv, "serialCommands");
+      ros::NodeHandle nh_;
+      ros::Subscriber arduino_sub = nh_.subscribe("arduino_commands", 60, arduinoCallback);
+      arduino_pub = nh_.advertise<std_msgs::String>("arduino_sensors", 5);
+      readSerialFromArduino();  // first serial read attempt fails, so get it out of the way.
+      ros::spin();
 }

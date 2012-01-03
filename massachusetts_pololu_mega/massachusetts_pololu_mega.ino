@@ -293,7 +293,7 @@ void HandleCommand(char* input, int length)
     case 'B':
     case 'b':
       //Serial.print(checkBattery(), BYTE); // version 1.0 does not use byte
-      Serial.write(checkBattery());
+      Serial.write((char)checkBattery());
       //Serial.write('a');
       break;
       
