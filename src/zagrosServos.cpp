@@ -81,7 +81,8 @@ void ZagrosServosCmd::skypeCallback( const std_msgs::String& msgSkype)
 				
 	if (cmdChar == 'U' || cmdChar == 'u' || cmdChar == 'H' || cmdChar == 'h' || cmdChar == 'J' || cmdChar == 'j'
 	    || cmdChar == 'K' || cmdChar == 'k' || cmdChar == 'N' || cmdChar == 'n' || cmdChar == 'M' || cmdChar == 'm'  // servo command
-	    || cmdChar == 'P' || cmdChar == 'p') // power toggle command
+	    || cmdChar == 'P' || cmdChar == 'p' // power toggle command
+	    || cmdChar == 'B' || cmdChar == 'b') // battery monitor command
 	{
 		cmdString = cmdChar;
 		char buffer[10];

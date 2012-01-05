@@ -102,6 +102,7 @@ long timeOutCheck;
 int batteryMonitorPin;
 float batteryRange;
 volatile unsigned long encoderRight, encoderLeft;
+long currentLeftMotor, currentRightMotor;
 
 char checkBattery()
 {
@@ -178,7 +179,7 @@ void move(int speed) // speed goes from -255 to 255
   //Serial.println(speed);
   //motorDriver.setM1Speed(speed);
   //motorDriver.setM2Speed(-speed);
-  motorDriver.setSpeeds(-speed,speed);
+  motorDriver.setSpeeds(speed,-speed);
   if (brakesOn)
   {
     coast();
@@ -206,9 +207,14 @@ void turn(int speed) // speed goes from -255 to 255
 
 void getMotorCurrents()
 {
-  int currentM1 = motorDriver.getM1CurrentMilliamps();
-  int currentM2 = motorDriver.getM2CurrentMilliamps();
+  currentLeftMotor += motorDriver.getM1CurrentMilliamps();
+  currentRightMotor += motorDriver.getM2CurrentMilliamps();
 }
+
+void setMotorSpeeds(int speedLeft, speedRight)
+{
+}
+
  
 // process a command string
 void HandleCommand(char* input, int length)
@@ -372,6 +378,8 @@ void setup()
   
   motorDriver.init();
   coast();
+  currentLeftMotor = 0;
+  currentRightMotor = 0;
 
   // using CTC (clear timer on compare) mode allows us to fire an interrupt when the timer overruns, so
   // we can get an accurate value even through timer overflows
@@ -463,6 +471,12 @@ void loop()
     while (!Serial.available()) // wait for input
     {
       if (millis() - timeOutCheck > TIMED_OUT && Moving) move(0);  //if we are moving and haven't heard anything in a long time, stop moving
+      if (Moving)
+      {
+        getMotorCurrents();
+        if (currentLeftMotor > currentRightMotor)
+        {
+          
     }
     inputBuffer[inputLength] = Serial.read(); // read it in
   } while (inputBuffer[inputLength] != LineEndCharacter && ++inputLength < BufferLength);

@@ -49,15 +49,15 @@
 
 #define MAX_FORWARD_SPEED 255  // speeds are 0 - 255
 #define MAX_TURN_SPEED 255
-#define MIN_FORWARD_SPEED 155
-#define MIN_TURN_SPEED 155
-#define DELTA_FORWARD_SPEED 20
-#define DELTA_TURN_SPEED 20
-#define DEFAULT_FORWARD_SPEED 195
-#define DEFAULT_TURN_SPEED 195
+#define MIN_FORWARD_SPEED 100
+#define MIN_TURN_SPEED 100
+#define DELTA_FORWARD_SPEED 30
+#define DELTA_TURN_SPEED 30
+#define DEFAULT_FORWARD_SPEED 150
+#define DEFAULT_TURN_SPEED 150
 
-#define MIN_MOVE_TIME 500
-#define MIN_TURN_TIME 200
+#define MIN_MOVE_TIME 200
+#define MIN_TURN_TIME 100
 
 #define END_COMMAND_CHARACTER '#'
 
@@ -144,6 +144,7 @@ void ZagrosMotorsCmd::move()
     // numSteps here can range from 1 to 5, so we can get 0, 3MMT, 6MMT, and 9MMT
     sendCommand();
     delay(MIN_MOVE_TIME * ((2 * numSteps) - 1));  // numSteps here can range from 1 to 5, so we can get 1, 3, 5, 7, 9
+    //delay(MIN_TURN_TIME * numSteps);
     driving = DRIVING_STRAIGHT;
     slowStop();
 }
@@ -167,8 +168,9 @@ void ZagrosMotorsCmd::turn()
     // numSteps here can range from 1 to 5, so we can get 0, 3MMT, 6MMT, and 9MMT
     sendCommand();
     delay(MIN_TURN_TIME * ((2 * numSteps) - 1));  // numSteps here can range from 1 to 5, so we can get 1, 3, 5, 7, 9
+    //delay(MIN_TURN_TIME * numSteps);
     driving = DRIVING_TURN;
-    slowStop();
+    stop();
 }
 
 void ZagrosMotorsCmd::slowStop()
@@ -191,7 +193,8 @@ void ZagrosMotorsCmd::slowStop()
       delay(RAMPUP_SPEED_DELAY);
     }
   }
-  stop();
+  cmdSpeed = 0;
+  sendCommand();
 }
 
 void ZagrosMotorsCmd::stop()

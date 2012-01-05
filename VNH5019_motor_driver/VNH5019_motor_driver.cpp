@@ -68,6 +68,9 @@ void VNH5019_motor_driver::init()
                 // and also sets the range of the analog input, as we get 100% duty cycle when we send
                 // analogWrite (_PWM1, ICR1).  Since we want to send serial data as a single byte (0 to 255), we use
                 // ICR1 = 510 and then just multiply the input value by 2 when we call analogWrite
+                
+                // arrggg, turns out that analogWrite only goes from 0 to 255 regardless of the timers
+                // have to rethink this........
 }
 // Set speed for motor 1, speed is a number betwenn -255 and 255
 void VNH5019_motor_driver::setM1Speed(int speed)
@@ -81,7 +84,7 @@ void VNH5019_motor_driver::setM1Speed(int speed)
   }
   if (speed > 255)  // Max PWM dutycycle
     speed = 255;
-  analogWrite(_PWM1,speed * 2); // note the *2 due to using ICR1 = 510
+  analogWrite(_PWM1,speed); // note the *2 due to using ICR1 = 510
   if (reverse)
   {
     digitalWrite(_INA1,LOW);
@@ -106,7 +109,7 @@ void VNH5019_motor_driver::setM2Speed(int speed)
   }
   if (speed > 255) speed = 255;
   
-  analogWrite(_PWM2,speed*2); // note the *2 due to using ICR1 = 510
+  analogWrite(_PWM2,speed); // note the *2 due to using ICR1 = 510
   
   if (reverse)
   {
@@ -139,7 +142,7 @@ void VNH5019_motor_driver::setM1Brake(int brake)
     brake = 255;
   digitalWrite(_INA1, LOW);
   digitalWrite(_INB1, LOW);
-  analogWrite(_PWM1,brake * 2); // note the *2 due to using ICR1 = 510
+  analogWrite(_PWM1,brake); // note the *2 due to using ICR1 = 510
 }
 
 // Brake motor 2, brake is a number between 0 and 255
@@ -154,7 +157,7 @@ void VNH5019_motor_driver::setM2Brake(int brake)
     brake = 255;
   digitalWrite(_INA2, LOW);
   digitalWrite(_INB2, LOW);
-  analogWrite(_PWM2,brake*2); // note the *2 due to using ICR1 = 510
+  analogWrite(_PWM2,brake); // note the *2 due to using ICR1 = 510
 }
 
 // Brake motor 1 and 2, brake is a number between 0 and 255
