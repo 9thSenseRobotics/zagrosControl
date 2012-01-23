@@ -87,8 +87,7 @@
 #define PAN_MAX 180
 #define PAN_DELTA 10
 
-#define BATTERY_MONITOR_PIN A8
-#define BATTERY_MONITOR_GROUND_PIN 46
+#define BATTERY_MONITOR_PIN A2
 #define ZERO_PERCENT_BATTERY_VOLTAGE 11.5
 #define FULL_BATTERY_VOLTAGE 13.5
 #define VOLTAGE_DIVIDER_RATIO 3.2
@@ -391,8 +390,6 @@ void setup()
   
   batteryRange = FULL_BATTERY_VOLTAGE - ZERO_PERCENT_BATTERY_VOLTAGE;
   batteryMonitorPin = BATTERY_MONITOR_PIN;
-  pinMode(BATTERY_MONITOR_GROUND_PIN, OUTPUT);
-  digitalWrite(BATTERY_MONITOR_GROUND_PIN, LOW);
   
   tiltServo.attach(tiltPin); 
   panServo.attach(panPin);  // attaches the pan servo pin to the servo object
