@@ -42,6 +42,7 @@ using namespace std;
 
 FILE * arduinoPort;
 ros::Publisher  arduino_pub;
+bool firstRead;
 
 int readSerialFromArduino()
 {
@@ -104,12 +105,23 @@ void arduinoCallback( const std_msgs::String& msgArduino)
 	if (cmdChar == 'B' || cmdChar == 'b')   // asking for battery percentage
 	{
 	    int counter = 0;
-	    ros::Duration(0.5).sleep(); // give the arduino a moment to respond to the write request
+	    ros::Duration(0.5).sleep(); // give the arduino a moment to respond to the write request	        
+	    if (firstRead)
+	    {
+	        batteryPercent = readSerialFromArduino(); // this fails the first time through
+	        ros::Duration(0.5).sleep();
+	        arduinoPort = fopen (ARDUINO_FILENAME_PRIMARY, "w");
+	        fputs(buf, arduinoPort);
+	        fflush (arduinoPort);
+	        ros::Duration(0.5).sleep();
+	        firstRead = false;
+	     }   
+	        
 	    while (counter < 3)
 	    {
 	        batteryPercent = readSerialFromArduino();
 	        if (batteryPercent > -1) break;
-	        ros::Duration(1.0).sleep();
+            ros::Duration(1.0).sleep();
 	        counter++;
 	        std::cout << "serial port read failed on try " << counter << std::endl;
 	     }
@@ -128,6 +140,6 @@ int main(int argc, char** argv)
       ros::NodeHandle nh_;
       ros::Subscriber arduino_sub = nh_.subscribe("arduino_commands", 60, arduinoCallback);
       arduino_pub = nh_.advertise<std_msgs::String>("arduino_sensors", 5);
-      readSerialFromArduino();  // first serial read attempt fails, so get it out of the way.
+      firstRead = true;
       ros::spin();
 }

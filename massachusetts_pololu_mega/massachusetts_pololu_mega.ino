@@ -3,6 +3,18 @@
 // requires a Mega to work, not an Uno or Nano, due to conflicts with the pololu motor board
 // and the servo library (both want exclusive use of pins 9 and 10).
 
+// wiring:
+// motor 1 is the right motor, motor2 the left.
+// hook them both up so that the outside wire from the motor goes into the outside terminal
+// that corresponds to M1A for the right motor, M2B for the left motor
+
+// for the battery monitor, hook it up with the + side soldered to Vout on the motor driver (+12)
+// the negative side to ground and the middle to A5.  With the battery attached, 
+// measure the voltage on Vout and divide it by the voltage on A5
+// and enter that as the parameter VOLTAGE_DIVIDER_RATIO (assuming 22K and 10K resistors, the value should be 3.2)
+// Also measure the fully charged battery value and enter that with the discharged value into the parameters
+// FULL_BATTERY_VOLTAGE and ZERO_PERCENT_BATTERY_VOLTAGE
+
 // command form is a letter for direction:
 // W, S, A, D, = move forward, move backward, right turn, left turn.
 // case does not matter, so w, a, s, d are OK
@@ -87,10 +99,10 @@
 #define PAN_MAX 180
 #define PAN_DELTA 10
 
-#define BATTERY_MONITOR_PIN A2
-#define ZERO_PERCENT_BATTERY_VOLTAGE 11.5
-#define FULL_BATTERY_VOLTAGE 13.5
-#define VOLTAGE_DIVIDER_RATIO 3.2
+#define BATTERY_MONITOR_PIN A5
+#define ZERO_PERCENT_BATTERY_VOLTAGE 10.5
+#define FULL_BATTERY_VOLTAGE 13.0
+#define VOLTAGE_DIVIDER_RATIO 3.18
 
 VNH5019_motor_driver motorDriver;
 Servo panServo, tiltServo;  // create servo objects to control the servos
@@ -102,10 +114,10 @@ int batteryMonitorPin;
 float batteryRange;
 volatile unsigned long encoderRight, encoderLeft;
 
-char checkBattery()
+int checkBattery()
 {
   float voltage =  (float) ((analogRead(batteryMonitorPin) / 1023.) * 5.0 ) * VOLTAGE_DIVIDER_RATIO;
-  char batteryPercent =  (char) ( 100. * ( ( voltage - ZERO_PERCENT_BATTERY_VOLTAGE) / batteryRange)); // returns percentage
+  int batteryPercent =  (int) ( 100. * ( ( voltage - ZERO_PERCENT_BATTERY_VOLTAGE) / batteryRange)); // returns percentage
   if (batteryPercent > 99) return 99;
   if (batteryPercent < 0) return 0;
   return batteryPercent;  
@@ -312,7 +324,7 @@ void HandleCommand(char* input, int length)
     case 'B':
     case 'b':
       //Serial.print(checkBattery(), BYTE); // version 1.0 does not use byte
-      Serial.write((char)checkBattery());
+      Serial.write(checkBattery());
       //Serial.write('a');
       break;
       
