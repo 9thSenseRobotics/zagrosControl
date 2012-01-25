@@ -11,6 +11,32 @@ using namespace LibSerial;
 SerialStream ardu;
 
 
+void send(string Data)
+{
+    cout << "sending string = " << Data << endl;
+    ardu << Data;
+}
+    
+int get(string out){
+    int res;
+    char str[16];
+    string test = "m#";
+
+    cout << "string sent, trying to recieve, hit a key" << endl;
+   for (int i =0; i < 3; i++)
+   { cin.ignore();
+     cout << "key hit, proceeding" << endl;
+    //ardu >> str;
+    //char next_byte ;
+    //ardu.get(str,2) ;
+    ardu.read(str,1);
+    sscanf(str,"%d",&res);
+    cout << "string received = "  << res << endl;
+    }
+    return res;
+}
+
+
 int main(int argc, char** argv)
 {
 
@@ -40,8 +66,8 @@ int main(int argc, char** argv)
             cout << "string sent, trying to recieve, hit a key" << endl;
             //cin.ignore();
             cout << "key hit, proceeding" << endl;
-            ardu >> str;
-            cout << "string received = "  << str << endl;
+            ardu.read(str,1);
+            cout << "string received = "  << str[0] << endl;
         }            
      } while(1);   
 }
