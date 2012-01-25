@@ -189,7 +189,7 @@ void move(int speed) // speed goes from -255 to 255
   //Serial.println(speed);
   //motorDriver.setM1Speed(speed);
   //motorDriver.setM2Speed(-speed);
-  motorDriver.setSpeeds(-speed,speed);
+  motorDriver.setSpeeds(speed,speed);
   if (brakesOn)
   {
     coast();
@@ -204,7 +204,7 @@ void turn(int speed) // speed goes from -255 to 255
 {
   //Serial.println("turning, speed = ");
   //Serial.println(speed);
-  motorDriver.setSpeeds(speed,speed);
+  motorDriver.setSpeeds(-speed,speed);
   if (brakesOn)
   {
     coast();
@@ -253,11 +253,11 @@ void HandleCommand(char* input, int length)
       break;
     case 'D':    // turn right
     case 'd':
-      turn(-speedToGo);
+      turn(speedToGo);
       break;
     case 'A':    // turn left
     case 'a':
-      turn(speedToGo);
+      turn(-speedToGo);
       break;
     case 'X':    // stop
     case 'x':
@@ -310,6 +310,9 @@ void HandleCommand(char* input, int length)
       panPos = PAN_CENTER;
       panServo.write(panPos);
       break;
+    case 'R': // relax the servos
+    case 'r':
+    
       
     /*case 'P':
     case 'p':
@@ -323,12 +326,10 @@ void HandleCommand(char* input, int length)
      
     case 'B':
     case 'b':
-      //Serial.print(checkBattery(), BYTE); // version 1.0 does not use byte
-      Serial.write(checkBattery());
-      //Serial.write('a');
+      Serial.print(checkBattery());
       break;
       
-      default:
+    default:
       //Serial.println("did not recognize command ");
       break;
   }
