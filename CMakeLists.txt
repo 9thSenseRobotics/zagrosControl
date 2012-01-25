@@ -29,6 +29,8 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #rosbuild_add_executable(example examples/example.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
 
+link_libraries(serial)
+
 rosbuild_add_executable(zagrosServos src/zagrosServos.cpp)
 rosbuild_add_executable(zagrosMotors src/zagrosMotors.cpp)
-rosbuild_add_executable(serial_io src/serial_io.cpp)
+rosbuild_add_executable(serial_stream src/serial_stream.cpp)

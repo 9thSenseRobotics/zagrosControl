@@ -1,0 +1,9 @@
+zagros startup:
+
+new:
+
+run skype
+roslaunch zagrosControl litebot.launch
+
+
+
