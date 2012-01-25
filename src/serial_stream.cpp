@@ -8,31 +8,20 @@ using namespace LibSerial;
 
 #define PORT "/dev/ttyACM0" //This is system-specific
 
-SerialStream ardu;
+SerialStream mySerial;
 
 
-void send(string Data)
+void sendSerial(string Data)
 {
     cout << "sending string = " << Data << endl;
-    ardu << Data;
+    mySerial << Data;
 }
     
-int get(string out){
+int getSerial(){
     int res;
     char str[16];
-    string test = "m#";
-
-    cout << "string sent, trying to recieve, hit a key" << endl;
-   for (int i =0; i < 3; i++)
-   { cin.ignore();
-     cout << "key hit, proceeding" << endl;
-    //ardu >> str;
-    //char next_byte ;
-    //ardu.get(str,2) ;
-    ardu.read(str,1);
+    mySerial.read(str,2);
     sscanf(str,"%d",&res);
-    cout << "string received = "  << res << endl;
-    }
     return res;
 }
 
@@ -40,11 +29,11 @@ int get(string out){
 int main(int argc, char** argv)
 {
 
-    /*The arduino must be setup to use the same baud rate*/
+    /*The mySerialino must be setup to use the same baud rate*/
     cout << "opening port" << endl;
-    ardu.Open(PORT);
-    ardu.SetBaudRate(SerialStreamBuf::BAUD_9600);
-    ardu.SetCharSize(SerialStreamBuf::CHAR_SIZE_8);
+    mySerial.Open(PORT);
+    mySerial.SetBaudRate(SerialStreamBuf::BAUD_9600);
+    mySerial.SetCharSize(SerialStreamBuf::CHAR_SIZE_8);
     cout << "port open" << endl;
     do
     {
@@ -58,16 +47,11 @@ int main(int argc, char** argv)
         ss << val;
         ss >> cmd;
         cmd.append("#");
-        ardu << cmd;
+        sendSerial(cmd);
         
         if (val == 'b') 
         {
-            char str[16];
-            cout << "string sent, trying to recieve, hit a key" << endl;
-            //cin.ignore();
-            cout << "key hit, proceeding" << endl;
-            ardu.read(str,1);
-            cout << "string received = "  << str[0] << endl;
+            cout << "value received = "  << getSerial() << endl;
         }            
      } while(1);   
 }
