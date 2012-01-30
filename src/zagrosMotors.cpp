@@ -51,7 +51,7 @@
 #define MAX_TURN_SPEED 255
 #define MIN_FORWARD_SPEED 100
 #define MIN_TURN_SPEED 100
-#define DELTA_FORWARD_SPEED 30
+#define DELTA_FORWARD_SPEED 20
 #define DELTA_TURN_SPEED 30
 #define DEFAULT_FORWARD_SPEED 150
 #define DEFAULT_TURN_SPEED 150
@@ -61,7 +61,8 @@
 
 #define END_COMMAND_CHARACTER '#'
 
-#define RAMPUP_SPEED_DELAY 100  // controls how long between speed steps when ramping up from a stop to default speed
+#define RAMPUP_TURN_DELAY 100  // controls how long between speed steps when ramping up from a stop to default speed
+#define RAMPUP_MOVE_DELAY 200
 #define TIME_OUT 8000.  // number of milliseconds to wait for command before you consider it a timeout and stop the base
 #define TURN_OFF_MOTOR_POWER 900000.  // number of milliseconds of inactivity before powering down base to save battery power
 
@@ -132,13 +133,13 @@ void ZagrosMotorsCmd::move()
     while (cmdSpeed < DEFAULT_FORWARD_SPEED)  // ramp up to speed from a stop
     {
        sendCommand();      
-       delay(MIN_MOVE_TIME);
+       delay(RAMPUP_MOVE_DELAY);
        cmdSpeed += DELTA_FORWARD_SPEED; 
     }
     for (int i = 1; i < numSteps; i++)	// as numSteps gets bigger, go both longer and faster
     {
       sendCommand();
-      delay(RAMPUP_SPEED_DELAY);	// give some time for the command to work
+      delay(RAMPUP_MOVE_DELAY);	// give some time for the command to work
       if (cmdSpeed + DELTA_FORWARD_SPEED <= MAX_FORWARD_SPEED) cmdSpeed += DELTA_FORWARD_SPEED;
     }
     // numSteps here can range from 1 to 5, so we can get 0, 3MMT, 6MMT, and 9MMT
@@ -162,7 +163,7 @@ void ZagrosMotorsCmd::turn()
     for (int i = 1; i < numSteps; i++)	// as numSteps gets bigger, go both longer and faster
     {
       sendCommand();
-      delay(RAMPUP_SPEED_DELAY);	// give some time for the command to work
+      delay(RAMPUP_TURN_DELAY);	// give some time for the command to work
       if (cmdSpeed + DELTA_TURN_SPEED <= MAX_TURN_SPEED) cmdSpeed += DELTA_TURN_SPEED;
     }
     // numSteps here can range from 1 to 5, so we can get 0, 3MMT, 6MMT, and 9MMT
@@ -181,7 +182,7 @@ void ZagrosMotorsCmd::slowStop()
     {
         cmdSpeed -= DELTA_FORWARD_SPEED;
         sendCommand();
-        delay(RAMPUP_SPEED_DELAY);
+        delay(RAMPUP_MOVE_DELAY);
     }
   }
   else  // turning
@@ -190,7 +191,7 @@ void ZagrosMotorsCmd::slowStop()
     {
       cmdSpeed -= DELTA_TURN_SPEED;
       sendCommand();
-      delay(RAMPUP_SPEED_DELAY);
+      delay(RAMPUP_TURN_DELAY);
     }
   }
   cmdSpeed = 0;
