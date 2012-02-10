@@ -86,7 +86,8 @@
 #define LEDred 53
 
 #define TIMED_OUT 8000
-#define DEFAULT_SPEED 170
+#define DEFAULT_SPEED 200
+#define LEFT_MOTOR_BIAS 10
 
 #define TILT_CENTER 53
 #define TILT_LOOK_DOWN 80
@@ -189,7 +190,7 @@ void move(int speed) // speed goes from -255 to 255
   //Serial.println(speed);
   //motorDriver.setM1Speed(speed);
   //motorDriver.setM2Speed(-speed);
-  motorDriver.setSpeeds(speed,speed);
+  if (speed + LEFT_MOTOR_BIAS < 256 && speed - LEFT_MOTOR_BIAS > 0) motorDriver.setSpeeds(speed,speed + LEFT_MOTOR_BIAS);
   if (brakesOn)
   {
     coast();
