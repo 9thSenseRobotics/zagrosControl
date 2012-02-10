@@ -190,7 +190,7 @@ void move(int speed) // speed goes from -255 to 255
   //Serial.println(speed);
   //motorDriver.setM1Speed(speed);
   //motorDriver.setM2Speed(-speed);
-  if (speed + LEFT_MOTOR_BIAS < 256 && speed - LEFT_MOTOR_BIAS > 0) motorDriver.setSpeeds(speed,speed + LEFT_MOTOR_BIAS);
+  if (speed + LEFT_MOTOR_BIAS < 256 && speed - LEFT_MOTOR_BIAS > -255) motorDriver.setSpeeds(speed,speed + LEFT_MOTOR_BIAS);
   if (brakesOn)
   {
     coast();
