@@ -86,7 +86,7 @@
 #define LEDred 53
 
 #define TIMED_OUT 8000
-#define DEFAULT_SPEED 200
+#define DEFAULT_SPEED 220
 #define LEFT_MOTOR_BIAS 10
 
 #define TILT_CENTER 53
@@ -254,11 +254,11 @@ void HandleCommand(char* input, int length)
       break;
     case 'D':    // turn right
     case 'd':
-      turn(speedToGo);
+      turn(-speedToGo);
       break;
     case 'A':    // turn left
     case 'a':
-      turn(-speedToGo);
+      turn(speedToGo);
       break;
     case 'X':    // stop
     case 'x':
