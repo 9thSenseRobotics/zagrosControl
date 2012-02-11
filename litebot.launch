@@ -1,8 +1,5 @@
 <launch> 
   
-  <node pkg="captureSkypeChat" type="ROS_telebot_single_cam.py" name="ROS_skype">
-  </node>
-  
   <node pkg="zagrosControl" type="zagrosMotors" name="zagrosMotors" >
   </node>
   
