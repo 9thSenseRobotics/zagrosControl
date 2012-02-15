@@ -85,8 +85,8 @@
 #define LEDblue 51
 #define LEDred 53
 
-#define TIMED_OUT 8000
-#define DEFAULT_SPEED 220
+#define TIMED_OUT 1500
+#define DEFAULT_SPEED 240
 #define LEFT_MOTOR_BIAS 10
 
 #define TILT_CENTER 53
