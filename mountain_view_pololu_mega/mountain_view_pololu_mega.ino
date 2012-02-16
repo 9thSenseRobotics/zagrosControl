@@ -85,9 +85,10 @@
 #define LEDblue 51
 #define LEDred 53
 
-#define TIMED_OUT 1500
-#define DEFAULT_SPEED 240
+#define TIMED_OUT 8000
+#define DEFAULT_SPEED 220
 #define LEFT_MOTOR_BIAS 10
+#define MAX_DRIVER_VALUE 400
 
 #define TILT_CENTER 53
 #define TILT_LOOK_DOWN 80
@@ -173,7 +174,7 @@ void coast()
 
 void brakes()
 {
-  motorDriver.setBrakes(255,255);
+  motorDriver.setBrakes(MAX_DRIVER_VALUE,MAX_DRIVER_VALUE);
   brakesOn = true;
 }
 
@@ -190,7 +191,8 @@ void move(int speed) // speed goes from -255 to 255
   //Serial.println(speed);
   //motorDriver.setM1Speed(speed);
   //motorDriver.setM2Speed(-speed);
-  if (speed + LEFT_MOTOR_BIAS < 256 && speed - LEFT_MOTOR_BIAS > -255) motorDriver.setSpeeds(speed,speed + LEFT_MOTOR_BIAS);
+  speed = map(speed, -255, 255, -MAX_DRIVER_VALUE, MAX_DRIVER_VALUE);
+  if (speed + LEFT_MOTOR_BIAS < MAX_DRIVER_VALUE && speed - LEFT_MOTOR_BIAS > -MAX_DRIVER_VALUE) motorDriver.setSpeeds(speed,speed + LEFT_MOTOR_BIAS);
   if (brakesOn)
   {
     coast();
@@ -205,6 +207,9 @@ void turn(int speed) // speed goes from -255 to 255
 {
   //Serial.println("turning, speed = ");
   //Serial.println(speed);
+  if (speed < -255) speed = -255;
+  else if (speed > 255) speed = 255;
+  speed = map(speed, -255, 255, -MAX_DRIVER_VALUE, MAX_DRIVER_VALUE);
   motorDriver.setSpeeds(-speed,speed);
   if (brakesOn)
   {
