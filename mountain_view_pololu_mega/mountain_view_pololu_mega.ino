@@ -313,7 +313,7 @@ void HandleCommand(char* input, int length)
       break;
     case 'R': // relax the servos
     case 'r':
-    
+      break;  // not implemented yet
       
     /*case 'P':
     case 'p':
