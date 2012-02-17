@@ -106,7 +106,7 @@
 #define FULL_BATTERY_VOLTAGE 13.0
 #define VOLTAGE_DIVIDER_RATIO 3.18
 
-VNH5019_motor_driver motorDriver;
+DualVNH5019MotorShield motorDriver;
 Servo panServo, tiltServo;  // create servo objects to control the servos
 int panPos, tiltPos;    // variable to store the servo position 
 char inputBuffer[BufferLength];
