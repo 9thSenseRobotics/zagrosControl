@@ -35,7 +35,8 @@
 // if there is no number, then the servo will just move by one step (TILT_DELTA or PAN_DELTA)
 // U#
 
-#include <VNH5019_motor_driver.h>
+//#include <VNH5019_motor_driver.h>
+
 #include <Servo.h> 
 
 // pins 0 and 1 are used for serial comm with the laptop
@@ -478,7 +479,7 @@ void loop()
   do {
     while (!Serial.available()) // wait for input
     {
-      if (millis() - timeOutCheck > TIMED_OUT && Moving) move(0);  //if we are moving and haven't heard anything in a long time, stop moving
+      if (millis() - timeOutCheck > TIMED_OUT && Moving) Stop();  //if we are moving and haven't heard anything in a long time, stop moving
     }
     inputBuffer[inputLength] = Serial.read(); // read it in
   } while (inputBuffer[inputLength] != LineEndCharacter && ++inputLength < BufferLength);
