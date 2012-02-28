@@ -35,8 +35,7 @@
 // if there is no number, then the servo will just move by one step (TILT_DELTA or PAN_DELTA)
 // U#
 
-//#include <VNH5019_motor_driver.h>
-
+#include <DualVNH5019MotorShield.h>
 #include <Servo.h> 
 
 // pins 0 and 1 are used for serial comm with the laptop
@@ -488,4 +487,3 @@ void loop()
   //Serial.println(inputBuffer);
   HandleCommand(inputBuffer, inputLength);
 }
-
