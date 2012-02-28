@@ -1,0 +1,12 @@
+<launch> 
+  
+  <node pkg="zagrosControl" type="zagrosMotors" name="zagrosMotors" >
+  </node>
+  
+  <node pkg="zagrosControl" type="zagrosServos" name="zagrosServos" >
+  </node>
+  
+  <node pkg="zagrosControl" type="serial_stream" name="serial_stream" >
+  </node>
+  
+</launch>

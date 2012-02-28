@@ -35,7 +35,7 @@
 // if there is no number, then the servo will just move by one step (TILT_DELTA or PAN_DELTA)
 // U#
 
-#include <VNH5019_motor_driver.h>
+#include <DualVNH5019MotorShield.h>
 #include <Servo.h> 
 
 // pins 0 and 1 are used for serial comm with the laptop
@@ -85,16 +85,18 @@
 #define LEDblue 51
 #define LEDred 53
 
-#define TIMED_OUT 8000
-#define DEFAULT_SPEED 100
+#define TIMED_OUT 1500
+#define DEFAULT_SPEED 220
+#define LEFT_MOTOR_BIAS 10
+#define MAX_DRIVER_VALUE 400
 
-#define TILT_CENTER 55
-#define TILT_LOOK_DOWN 90
-#define TILT_MIN 135
-#define TILT_MAX 40
+#define TILT_CENTER 103
+#define TILT_LOOK_DOWN 103
+#define TILT_MIN 80
+#define TILT_MAX 170
 #define TILT_DELTA 10
 
-#define PAN_CENTER 93
+#define PAN_CENTER 90
 #define PAN_MIN 0
 #define PAN_MAX 180
 #define PAN_DELTA 10
@@ -104,7 +106,7 @@
 #define FULL_BATTERY_VOLTAGE 13.0
 #define VOLTAGE_DIVIDER_RATIO 3.18
 
-VNH5019_motor_driver motorDriver;
+DualVNH5019MotorShield motorDriver;
 Servo panServo, tiltServo;  // create servo objects to control the servos
 int panPos, tiltPos;    // variable to store the servo position 
 char inputBuffer[BufferLength];
@@ -172,7 +174,7 @@ void coast()
 
 void brakes()
 {
-  motorDriver.setBrakes(255,255);
+  motorDriver.setBrakes(MAX_DRIVER_VALUE,MAX_DRIVER_VALUE);
   brakesOn = true;
 }
 
@@ -189,7 +191,8 @@ void move(int speed) // speed goes from -255 to 255
   //Serial.println(speed);
   //motorDriver.setM1Speed(speed);
   //motorDriver.setM2Speed(-speed);
-  motorDriver.setSpeeds(speed,speed);
+  speed = map(speed, -255, 255, -MAX_DRIVER_VALUE, MAX_DRIVER_VALUE);
+  if (speed + LEFT_MOTOR_BIAS < MAX_DRIVER_VALUE && speed - LEFT_MOTOR_BIAS > -MAX_DRIVER_VALUE) motorDriver.setSpeeds(speed,speed + LEFT_MOTOR_BIAS);
   if (brakesOn)
   {
     coast();
@@ -204,6 +207,9 @@ void turn(int speed) // speed goes from -255 to 255
 {
   //Serial.println("turning, speed = ");
   //Serial.println(speed);
+  if (speed < -255) speed = -255;
+  else if (speed > 255) speed = 255;
+  speed = map(speed, -255, 255, -MAX_DRIVER_VALUE, MAX_DRIVER_VALUE);
   motorDriver.setSpeeds(-speed,speed);
   if (brakesOn)
   {
@@ -253,11 +259,11 @@ void HandleCommand(char* input, int length)
       break;
     case 'D':    // turn right
     case 'd':
-      turn(speedToGo);
+      turn(-speedToGo);
       break;
     case 'A':    // turn left
     case 'a':
-      turn(-speedToGo);
+      turn(speedToGo);
       break;
     case 'X':    // stop
     case 'x':
@@ -271,16 +277,16 @@ void HandleCommand(char* input, int length)
       panPos = PAN_CENTER;
       tiltPos = TILT_CENTER;
       break;
-    case 'N':    // tilt up
+    case 'N':    // tilt down
     case 'n':
-      if (tiltPos - (TILT_DELTA * stepsToGo) <= TILT_MIN) tiltPos += TILT_DELTA * stepsToGo;
-      else tiltPos = TILT_MIN;
+      if (tiltPos + (TILT_DELTA * stepsToGo) <= TILT_MAX) tiltPos += TILT_DELTA * stepsToGo;
+      else tiltPos = TILT_MAX;
       tiltServo.write(tiltPos);
       break;
-    case 'U':    // tilt down
+    case 'U':    // tilt up
     case 'u':
-      if (tiltPos + (TILT_DELTA * stepsToGo) >= TILT_MAX) tiltPos -= TILT_DELTA * stepsToGo;
-      else tiltPos = TILT_MAX;
+      if (tiltPos - (TILT_DELTA * stepsToGo) >= TILT_MIN) tiltPos -= TILT_DELTA * stepsToGo;
+      else tiltPos = TILT_MIN;
       tiltServo.write(tiltPos);
       break;
     case 'H':    // pan left
@@ -297,7 +303,7 @@ void HandleCommand(char* input, int length)
       break;
     case 'M':    // tilt max down
     case 'm':
-      tiltPos = TILT_MIN;
+      tiltPos = TILT_MAX;
       tiltServo.write(tiltPos);
       break;
     case 'Y':    // tilt look down
@@ -312,7 +318,7 @@ void HandleCommand(char* input, int length)
       break;
     case 'R': // relax the servos
     case 'r':
-    
+      break;  // not implemented yet
       
     /*case 'P':
     case 'p':
@@ -472,7 +478,7 @@ void loop()
   do {
     while (!Serial.available()) // wait for input
     {
-      if (millis() - timeOutCheck > TIMED_OUT && Moving) move(0);  //if we are moving and haven't heard anything in a long time, stop moving
+      if (millis() - timeOutCheck > TIMED_OUT && Moving) Stop();  //if we are moving and haven't heard anything in a long time, stop moving
     }
     inputBuffer[inputLength] = Serial.read(); // read it in
   } while (inputBuffer[inputLength] != LineEndCharacter && ++inputLength < BufferLength);
@@ -481,4 +487,3 @@ void loop()
   //Serial.println(inputBuffer);
   HandleCommand(inputBuffer, inputLength);
 }
-

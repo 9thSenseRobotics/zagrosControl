@@ -1,0 +1,8 @@
+zagros startup:
+
+run skype
+rosrun captureSkypeChat ROS_telebot_single_cam.py
+roslaunch zagrosControl litebot.launch
+
+
+
