@@ -90,15 +90,15 @@
 #define LEFT_MOTOR_BIAS 10
 #define MAX_DRIVER_VALUE 400
 
-#define TILT_CENTER 53
-#define TILT_LOOK_DOWN 80
-#define TILT_MIN 20
-#define TILT_MAX 105
+#define TILT_CENTER 103
+#define TILT_LOOK_DOWN 103
+#define TILT_MIN 80
+#define TILT_MAX 170
 #define TILT_DELTA 10
 
-#define PAN_CENTER 83
+#define PAN_CENTER 90
 #define PAN_MIN 0
-#define PAN_MAX 170
+#define PAN_MAX 180
 #define PAN_DELTA 10
 
 #define BATTERY_MONITOR_PIN A5
