@@ -1,4 +1,3 @@
-
 // accepts serial port inputs and responds with moves and servos
 // requires a Mega to work, not an Uno or Nano, due to conflicts with the pololu motor board
 // and the servo library (both want exclusive use of pins 9 and 10).
@@ -36,7 +35,7 @@
 // U#
 
 //#include <VNH5019_motor_driver.h>
-
+#include <DualVNH5019MotorShield.h>
 #include <Servo.h> 
 
 // pins 0 and 1 are used for serial comm with the laptop
