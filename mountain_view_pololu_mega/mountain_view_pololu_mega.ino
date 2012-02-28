@@ -1,3 +1,4 @@
+
 // accepts serial port inputs and responds with moves and servos
 // requires a Mega to work, not an Uno or Nano, due to conflicts with the pololu motor board
 // and the servo library (both want exclusive use of pins 9 and 10).
@@ -34,7 +35,6 @@
 // if there is no number, then the servo will just move by one step (TILT_DELTA or PAN_DELTA)
 // U#
 
-//#include <VNH5019_motor_driver.h>
 #include <DualVNH5019MotorShield.h>
 #include <Servo.h> 
 
@@ -85,7 +85,7 @@
 #define LEDblue 51
 #define LEDred 53
 
-#define TIMED_OUT 8000
+#define TIMED_OUT 1500
 #define DEFAULT_SPEED 220
 #define LEFT_MOTOR_BIAS 10
 #define MAX_DRIVER_VALUE 400
@@ -251,11 +251,11 @@ void HandleCommand(char* input, int length)
   switch(input[0]) {
     case 'W':    // move forward
     case 'w':
-      move(-speedToGo);
+      move(speedToGo);
       break;
     case 'S':    // move backward
     case 's':
-      move(speedToGo);
+      move(-speedToGo);
       break;
     case 'D':    // turn right
     case 'd':
@@ -487,4 +487,3 @@ void loop()
   //Serial.println(inputBuffer);
   HandleCommand(inputBuffer, inputLength);
 }
-
