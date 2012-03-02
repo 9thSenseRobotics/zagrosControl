@@ -51,8 +51,8 @@ class telo_stateRequest(roslib.message.Message):
       _x = self.value
       length = len(_x)
       buff.write(struct.pack('<I%ss'%length, length, _x))
-    except struct.error as se: self._check_types(se)
-    except TypeError as te: self._check_types(te)
+    except struct.error, se: self._check_types(se)
+    except TypeError, te: self._check_types(te)
 
   def deserialize(self, str):
     """
@@ -69,7 +69,7 @@ class telo_stateRequest(roslib.message.Message):
       end += length
       self.value = str[start:end]
       return self
-    except struct.error as e:
+    except struct.error, e:
       raise roslib.message.DeserializationError(e) #most likely buffer underfill
 
 
@@ -85,8 +85,8 @@ class telo_stateRequest(roslib.message.Message):
       _x = self.value
       length = len(_x)
       buff.write(struct.pack('<I%ss'%length, length, _x))
-    except struct.error as se: self._check_types(se)
-    except TypeError as te: self._check_types(te)
+    except struct.error, se: self._check_types(se)
+    except TypeError, te: self._check_types(te)
 
   def deserialize_numpy(self, str, numpy):
     """
@@ -105,7 +105,7 @@ class telo_stateRequest(roslib.message.Message):
       end += length
       self.value = str[start:end]
       return self
-    except struct.error as e:
+    except struct.error, e:
       raise roslib.message.DeserializationError(e) #most likely buffer underfill
 
 _struct_I = roslib.message.struct_I
@@ -194,8 +194,8 @@ string phone_home
       _x = self.phone_home
       length = len(_x)
       buff.write(struct.pack('<I%ss'%length, length, _x))
-    except struct.error as se: self._check_types(se)
-    except TypeError as te: self._check_types(te)
+    except struct.error, se: self._check_types(se)
+    except TypeError, te: self._check_types(te)
 
   def deserialize(self, str):
     """
@@ -237,7 +237,7 @@ string phone_home
       end += length
       self.phone_home = str[start:end]
       return self
-    except struct.error as e:
+    except struct.error, e:
       raise roslib.message.DeserializationError(e) #most likely buffer underfill
 
 
@@ -264,8 +264,8 @@ string phone_home
       _x = self.phone_home
       length = len(_x)
       buff.write(struct.pack('<I%ss'%length, length, _x))
-    except struct.error as se: self._check_types(se)
-    except TypeError as te: self._check_types(te)
+    except struct.error, se: self._check_types(se)
+    except TypeError, te: self._check_types(te)
 
   def deserialize_numpy(self, str, numpy):
     """
@@ -309,7 +309,7 @@ string phone_home
       end += length
       self.phone_home = str[start:end]
       return self
-    except struct.error as e:
+    except struct.error, e:
       raise roslib.message.DeserializationError(e) #most likely buffer underfill
 
 _struct_I = roslib.message.struct_I
