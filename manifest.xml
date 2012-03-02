@@ -1,7 +1,7 @@
 <package>
   <description brief="createControl">
 
-     createControl
+     zagrosControl
 
   </description>
   <author>dbarry</author>
@@ -10,6 +10,10 @@
   <url>http://ros.org/wiki/createControl</url>
   <depend package="geometry_msgs"/>
   <depend package="roscpp"/>
+  <export>
+    <cpp cflags="-I{prefix}/srv/cpp" />
+    <cpp cflags="-I{prefix}/msg/cpp" />
+  </export>
 
 </package>
 

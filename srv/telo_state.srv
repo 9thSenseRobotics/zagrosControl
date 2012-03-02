@@ -1,0 +1,8 @@
+string value
+---
+string remote_username
+float32 battery_capacity
+string power_state
+bool battery_low
+string tell_remote_user
+string phone_home
