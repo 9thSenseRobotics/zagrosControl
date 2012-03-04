@@ -1,5 +1,3 @@
-
-
 // accepts serial port inputs and responds with moves and servos
 // requires a Mega to work, not an Uno or Nano, due to conflicts with the pololu motor board
 // and the servo library (both want exclusive use of pins 9 and 10).
@@ -36,7 +34,7 @@
 // if there is no number, then the servo will just move by one step (TILT_DELTA or PAN_DELTA)
 // U#
 
-#include <VNH5019_motor_driver.h>
+//#include <DualVNH5019MotorShield.h>
 #include <Servo.h> 
 
 // pins 0 and 1 are used for serial comm with the laptop
@@ -51,7 +49,6 @@
 // motor2 diagnostic pin 12
 // motor1 current out pin A0
 // motor2 current out pin A1
-// charging detection pin 13
 
 // timers on the mega:
   // timer 0 pins A,B are 13,4
@@ -61,8 +58,15 @@
   // timer 4 pins A,B,C are 6,7,8
   // timer 5 pins A,B,C are 44,45,46
   
+
 #define tiltPin 3
 #define panPin 5
+#define rightMotorPWM 9
+#define leftMotorPWM 10
+#define rightMotorDirectionA 2
+#define rightMotorDirectionB 4
+#define leftMotorDirectionA 7
+#define leftMotorDirectionB 8
 #define SerialSpeed 9600
 #define BufferLength 16
 #define LineEndCharacter '#' // serial input commands must end with this character
@@ -77,8 +81,6 @@
 #define encoderRightYellow 33
 #define encoderRightBlack 35
 
-#define chargingDetectionPin 11 // detects presence of battery charger
-
 // multicolor LED
 #define OFF 0
 #define RED 1
@@ -89,16 +91,18 @@
 #define LEDblue 51
 #define LEDred 53
 
-#define TIMED_OUT 8000
-#define DEFAULT_SPEED 100
+#define TIMED_OUT 5000
+#define DEFAULT_SPEED 255
+#define LEFT_MOTOR_BIAS 40
+#define MAX_DRIVER_VALUE 400
 
-#define TILT_CENTER 55
-#define TILT_LOOK_DOWN 90
-#define TILT_MIN 135
-#define TILT_MAX 40
+#define TILT_CENTER 103
+#define TILT_LOOK_DOWN 103
+#define TILT_MIN 80
+#define TILT_MAX 170
 #define TILT_DELTA 10
 
-#define PAN_CENTER 93
+#define PAN_CENTER 90
 #define PAN_MIN 0
 #define PAN_MAX 180
 #define PAN_DELTA 10
@@ -108,10 +112,7 @@
 #define FULL_BATTERY_VOLTAGE 13.0
 #define VOLTAGE_DIVIDER_RATIO 3.18
 
-#define BATTERY_CHARGING_SHUTDOWN_TIME 30000 // in ms; 30 sec.
-
-VNH5019_motor_driver motorDriver;
-
+//DualVNH5019MotorShield motorDriver;
 Servo panServo, tiltServo;  // create servo objects to control the servos
 int panPos, tiltPos;    // variable to store the servo position 
 char inputBuffer[BufferLength];
@@ -120,11 +121,6 @@ long timeOutCheck;
 int batteryMonitorPin;
 float batteryRange;
 volatile unsigned long encoderRight, encoderLeft;
-
-long currentTime = 0;
-long chargingStartTime = 0;
-long chargingElapsedTime = 0;
-bool inChargingCountdown = false;
 
 int checkBattery()
 {
@@ -155,21 +151,21 @@ void LEDlight(int color)
       break; 
   }
 }
-
+/*
 bool stopIfFault()
 {
   bool result = false;
   if (motorDriver.getM1Fault())
   {
       motorDriver.setSpeeds(0,0);
-      //Serial.println("Fault detected in Motor 1 ");
+      Serial.println("Fault detected in Motor 1 ");
       LEDlight(RED);
       result = true;
   }
   if (motorDriver.getM2Fault())
   {
       motorDriver.setSpeeds(0,0);
-      //Serial.println("Fault detected in Motor 2 ");
+      Serial.println("Fault detected in Motor 2 ");
       LEDlight(RED);
       result = true;
   }
@@ -184,54 +180,86 @@ void coast()
 
 void brakes()
 {
-  motorDriver.setBrakes(255,255);
+  motorDriver.setBrakes(MAX_DRIVER_VALUE,MAX_DRIVER_VALUE);
   brakesOn = true;
 }
-
+*/
 void Stop()
 {
-  motorDriver.setSpeeds(0,0);
-  brakes();
-  brakesOn = true;
+  analogWrite(rightMotorPWM, 0);
+  analogWrite(leftMotorPWM, 0);
+  digitalWrite(rightMotorDirectionA, LOW);
+  digitalWrite(rightMotorDirectionB, LOW);
+  digitalWrite(leftMotorDirectionA, LOW);
+  digitalWrite(leftMotorDirectionB, LOW);
+    //brakes();
+  //brakesOn = true;
+  Moving = false;
 }
 
 void move(int speed) // speed goes from -255 to 255
 {
-  //Serial.println("moving, speed = ");
-  //Serial.println(speed);
-  //motorDriver.setM1Speed(speed);
-  //motorDriver.setM2Speed(-speed);
-  motorDriver.setSpeeds(speed,speed);
-  if (brakesOn)
+  Serial.println("moving, speed = ");
+  Serial.println(speed);
+  if (speed == 0) Stop();
+  else
   {
-    coast();
-    brakesOn = false;
+    if (speed < 0) {
+      digitalWrite(rightMotorDirectionA, LOW);
+      digitalWrite(rightMotorDirectionB, HIGH);
+      digitalWrite(leftMotorDirectionA, LOW);
+      digitalWrite(leftMotorDirectionB, HIGH);
+      speed = -speed;
+    }
+    else {
+      digitalWrite(rightMotorDirectionA, HIGH);
+      digitalWrite(rightMotorDirectionB, LOW);
+      digitalWrite(leftMotorDirectionA, HIGH);
+      digitalWrite(leftMotorDirectionB, LOW);
+    }
+  
+    if (speed > 255 - LEFT_MOTOR_BIAS) speed = 255 - LEFT_MOTOR_BIAS;  
+      
+    analogWrite(rightMotorPWM, speed);
+    analogWrite(leftMotorPWM, speed + LEFT_MOTOR_BIAS);
+    Moving = true;
   }
-  if (speed == 0 || stopIfFault()) Moving = false;
-  else Moving = true;
   timeOutCheck = millis();
 }
 
 void turn(int speed) // speed goes from -255 to 255
 {
-  //Serial.println("turning, speed = ");
-  //Serial.println(speed);
-  motorDriver.setSpeeds(-speed,speed);
-  if (brakesOn)
+  Serial.println("turning, speed = ");
+  Serial.println(speed);
+  if (speed == 0) Stop();
+  else
   {
-    coast();
-    brakesOn = false;
+    if (speed < 0) {
+      digitalWrite(rightMotorDirectionA, LOW);
+      digitalWrite(rightMotorDirectionB, HIGH);
+      digitalWrite(leftMotorDirectionA, HIGH);
+      digitalWrite(leftMotorDirectionB, LOW);
+      speed = -speed;
+    }
+    else {
+      digitalWrite(rightMotorDirectionA, HIGH);
+      digitalWrite(rightMotorDirectionB, LOW);
+      digitalWrite(leftMotorDirectionA, LOW);
+      digitalWrite(leftMotorDirectionB, HIGH);
+    }
+  
+    //if (speed > 255 - LEFT_MOTOR_BIAS) speed = 255 - LEFT_MOTOR_BIAS; 
+      
+    if (speed > 255) speed = 255; 
+        
+    analogWrite(rightMotorPWM, speed);
+    analogWrite(leftMotorPWM, speed);
+    Moving = true;
   }
-  if (speed == 0 || stopIfFault()) Moving = false;
-  else Moving = true;
   timeOutCheck = millis();  
 }
 
-void getMotorCurrents()
-{
-  int currentM1 = motorDriver.getM1CurrentMilliamps();
-  int currentM2 = motorDriver.getM2CurrentMilliamps();
-}
+
  
 // process a command string
 void HandleCommand(char* input, int length)
@@ -265,11 +293,11 @@ void HandleCommand(char* input, int length)
       break;
     case 'D':    // turn right
     case 'd':
-      turn(speedToGo);
+      turn(-speedToGo);
       break;
     case 'A':    // turn left
     case 'a':
-      turn(-speedToGo);
+      turn(speedToGo);
       break;
     case 'X':    // stop
     case 'x':
@@ -283,16 +311,16 @@ void HandleCommand(char* input, int length)
       panPos = PAN_CENTER;
       tiltPos = TILT_CENTER;
       break;
-    case 'N':    // tilt up
+    case 'N':    // tilt down
     case 'n':
-      if (tiltPos - (TILT_DELTA * stepsToGo) <= TILT_MIN) tiltPos += TILT_DELTA * stepsToGo;
-      else tiltPos = TILT_MIN;
+      if (tiltPos + (TILT_DELTA * stepsToGo) <= TILT_MAX) tiltPos += TILT_DELTA * stepsToGo;
+      else tiltPos = TILT_MAX;
       tiltServo.write(tiltPos);
       break;
-    case 'U':    // tilt down
+    case 'U':    // tilt up
     case 'u':
-      if (tiltPos + (TILT_DELTA * stepsToGo) >= TILT_MAX) tiltPos -= TILT_DELTA * stepsToGo;
-      else tiltPos = TILT_MAX;
+      if (tiltPos - (TILT_DELTA * stepsToGo) >= TILT_MIN) tiltPos -= TILT_DELTA * stepsToGo;
+      else tiltPos = TILT_MIN;
       tiltServo.write(tiltPos);
       break;
     case 'H':    // pan left
@@ -309,7 +337,7 @@ void HandleCommand(char* input, int length)
       break;
     case 'M':    // tilt max down
     case 'm':
-      tiltPos = TILT_MIN;
+      tiltPos = TILT_MAX;
       tiltServo.write(tiltPos);
       break;
     case 'Y':    // tilt look down
@@ -324,7 +352,7 @@ void HandleCommand(char* input, int length)
       break;
     case 'R': // relax the servos
     case 'r':
-    
+      break;  // not implemented yet
       
     /*case 'P':
     case 'p':
@@ -394,8 +422,8 @@ void setup()
   Serial.begin(SerialSpeed);   // connect to laptop
   //Serial.println("serial connected");
   
-  motorDriver.init();
-  coast();
+  //motorDriver.init();
+  //coast();
 
   // using CTC (clear timer on compare) mode allows us to fire an interrupt when the timer overruns, so
   // we can get an accurate value even through timer overflows
@@ -454,8 +482,6 @@ void setup()
   digitalWrite(encoderRightBlack,LOW);
   */
   
-  pinMode (chargingDetectionPin, INPUT);
-   
   // multicolor LED
   pinMode(LEDground, OUTPUT); 
   digitalWrite(LEDground, LOW);
@@ -481,45 +507,24 @@ void setup()
 void loop()
 { 
   // get a command from the serial port
-  currentTime = millis() / 1000;
-  
-  Serial.println(inChargingCountdown);
-  if (digitalRead(chargingDetectionPin) == LOW)
-  {
-    Serial.println("not in countdown");
-    inChargingCountdown = false;
-    chargingElapsedTime = 0;
-    chargingStartTime = 0;
-  } else if (digitalRead(chargingDetectionPin) == HIGH && !inChargingCountdown) {
-    // start the countdown
-    Serial.println("starting countdown");
-    inChargingCountdown = true;
-    chargingStartTime = millis() / 1000;
-    chargingElapsedTime = 0;
-  } else { // you're in the countdown. set the elapsed time, and if it's past the time, print shutdown command
-    chargingElapsedTime = (millis() / 1000) - chargingStartTime;
-    inChargingCountdown = true;
-    if (!(chargingElapsedTime % 500))
-      Serial.println(chargingElapsedTime);
-    if (chargingElapsedTime >= BATTERY_CHARGING_SHUTDOWN_TIME)
-    {
-      Serial.println ("charging shutdown");
-      inChargingCountdown = false;
-    }
-  }
-  
   int inputLength = 0; 
   digitalWrite(LEDgreen,LOW); // show on LED that we are waiting for serial input
-//  do {
-//    while (!Serial.available()) // wait for input
-//    {
-//      if (currentTime - timeOutCheck > TIMED_OUT && Moving) move(0);  //if we are moving and haven't heard anything in a long time, stop moving
-//    }
-//    inputBuffer[inputLength] = Serial.read(); // read it in
-//  } while (inputBuffer[inputLength] != LineEndCharacter && ++inputLength < BufferLength);
+  do {
+    while (!Serial.available()) // wait for input
+    {
+      if (millis() - timeOutCheck > TIMED_OUT && Moving)
+     {
+        Stop();  //if we are moving and haven't heard anything in a long time, stop moving
+        timeOutCheck = millis();
+        
+        Serial.println("motors timed out");
+     }
+    }
+     inputBuffer[inputLength] = Serial.read(); // read it in
+  } while (inputBuffer[inputLength] != LineEndCharacter && ++inputLength < BufferLength);
   inputBuffer[inputLength] = 0; //  add null terminator
       digitalWrite(LEDgreen,HIGH);  // show on LED that we received a serial input
-  //Serial.println(inputBuffer);
- // HandleCommand(inputBuffer, inputLength);
+  Serial.println(inputBuffer);
+  HandleCommand(inputBuffer, inputLength);
 }
 
