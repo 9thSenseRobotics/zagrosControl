@@ -1,5 +1,4 @@
 
-
 // accepts serial port inputs and responds with moves and servos
 // requires a Mega to work, not an Uno or Nano, due to conflicts with the pololu motor board
 // and the servo library (both want exclusive use of pins 9 and 10).
@@ -51,7 +50,6 @@
 // motor2 diagnostic pin 12
 // motor1 current out pin A0
 // motor2 current out pin A1
-// charging detection pin 13
 
 // timers on the mega:
   // timer 0 pins A,B are 13,4
@@ -76,8 +74,6 @@
 #define encoderRightGreen 31
 #define encoderRightYellow 33
 #define encoderRightBlack 35
-
-#define chargingDetectionPin 11 // detects presence of battery charger
 
 // multicolor LED
 #define OFF 0
@@ -108,10 +104,7 @@
 #define FULL_BATTERY_VOLTAGE 13.0
 #define VOLTAGE_DIVIDER_RATIO 3.18
 
-#define BATTERY_CHARGING_SHUTDOWN_TIME 30000 // in ms; 30 sec.
-
 VNH5019_motor_driver motorDriver;
-
 Servo panServo, tiltServo;  // create servo objects to control the servos
 int panPos, tiltPos;    // variable to store the servo position 
 char inputBuffer[BufferLength];
@@ -120,11 +113,6 @@ long timeOutCheck;
 int batteryMonitorPin;
 float batteryRange;
 volatile unsigned long encoderRight, encoderLeft;
-
-long currentTime = 0;
-long chargingStartTime = 0;
-long chargingElapsedTime = 0;
-bool inChargingCountdown = false;
 
 int checkBattery()
 {
@@ -454,8 +442,6 @@ void setup()
   digitalWrite(encoderRightBlack,LOW);
   */
   
-  pinMode (chargingDetectionPin, INPUT);
-   
   // multicolor LED
   pinMode(LEDground, OUTPUT); 
   digitalWrite(LEDground, LOW);
@@ -481,45 +467,18 @@ void setup()
 void loop()
 { 
   // get a command from the serial port
-  currentTime = millis() / 1000;
-  
-  Serial.println(inChargingCountdown);
-  if (digitalRead(chargingDetectionPin) == LOW)
-  {
-    Serial.println("not in countdown");
-    inChargingCountdown = false;
-    chargingElapsedTime = 0;
-    chargingStartTime = 0;
-  } else if (digitalRead(chargingDetectionPin) == HIGH && !inChargingCountdown) {
-    // start the countdown
-    Serial.println("starting countdown");
-    inChargingCountdown = true;
-    chargingStartTime = millis() / 1000;
-    chargingElapsedTime = 0;
-  } else { // you're in the countdown. set the elapsed time, and if it's past the time, print shutdown command
-    chargingElapsedTime = (millis() / 1000) - chargingStartTime;
-    inChargingCountdown = true;
-    if (!(chargingElapsedTime % 500))
-      Serial.println(chargingElapsedTime);
-    if (chargingElapsedTime >= BATTERY_CHARGING_SHUTDOWN_TIME)
-    {
-      Serial.println ("charging shutdown");
-      inChargingCountdown = false;
-    }
-  }
-  
   int inputLength = 0; 
   digitalWrite(LEDgreen,LOW); // show on LED that we are waiting for serial input
-//  do {
-//    while (!Serial.available()) // wait for input
-//    {
-//      if (currentTime - timeOutCheck > TIMED_OUT && Moving) move(0);  //if we are moving and haven't heard anything in a long time, stop moving
-//    }
-//    inputBuffer[inputLength] = Serial.read(); // read it in
-//  } while (inputBuffer[inputLength] != LineEndCharacter && ++inputLength < BufferLength);
+  do {
+    while (!Serial.available()) // wait for input
+    {
+      if (millis() - timeOutCheck > TIMED_OUT && Moving) move(0);  //if we are moving and haven't heard anything in a long time, stop moving
+    }
+    inputBuffer[inputLength] = Serial.read(); // read it in
+  } while (inputBuffer[inputLength] != LineEndCharacter && ++inputLength < BufferLength);
   inputBuffer[inputLength] = 0; //  add null terminator
       digitalWrite(LEDgreen,HIGH);  // show on LED that we received a serial input
   //Serial.println(inputBuffer);
- // HandleCommand(inputBuffer, inputLength);
+  HandleCommand(inputBuffer, inputLength);
 }
 
