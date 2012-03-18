@@ -122,37 +122,40 @@ void ZagrosMotorsCmd::skypeCallback( const std_msgs::String& msgSkype)
         turn();
         break;
 
-	  // ----------------------------------------------------------------------------------
-	  // this block was added to support GUI driving, e.g., not driving with 1-5 characters
-	  // alaina 2012-03-12
-	  // ----------------------------------------------------------------------------------
-      case 'f':  // move forward without stopping
+  // ----------------------------------------------------------------------------------
+  // this block was added to support GUI driving, e.g., not driving with 1-5 characters
+  // alaina 2012-03-12
+  // ----------------------------------------------------------------------------------
+      case 'o':  // move forward without stopping
+      case 'O':  // move forward without stopping
       	cmdChar = 'w'; // reset it to the forward character
         moveNoStop(); // accelerate and drive forward but don't stop after a certain number of steps
         break;
-      case 'v':  //move backward without stopping
+      case 'l':  //move backward without stopping
+      case 'L':  //move backward without stopping
       	cmdChar = 's'; // reset to the backward character
         moveNoStop(); // accelerate and drive backward but don't stop after a certain number of steps
         break;
-             
-      case 'b':  //turn right without stopping
+      case 'c':  //turn right without stopping
+      case 'C':  //turn right without stopping
       	cmdChar = 'd'; // reset to "turn right" character
         turnNoStop(); // turn but don't stop after a certain number of steps
         break;
-      case 'c':  // turn left without stopping
+      case 'i':  // turn left without stopping
+      case 'I':  // turn left without stopping
       	cmdChar = 'a'; // reset to "turn left" character
         turnNoStop(); // turn but don't stop after a certain number of steps
         break;
         
-	  case 'x':
-	  	slowStop(); // stop with deceleration
-	  	break;
-	  case 'z':
-	  	stop(); // stop with no deceleration
-	  	break;
-	  // ----------------------------------------------------------------------------------
-	  // end block - alaina 2012-03-12
-	  // ----------------------------------------------------------------------------------
+      case 'x':
+        slowStop(); // stop with deceleration
+  	break;
+      case 'z':
+  	stop(); // stop with no deceleration
+  	break;
+  // ----------------------------------------------------------------------------------
+  // end block - alaina 2012-03-12
+  // ----------------------------------------------------------------------------------
              
       default:  // unknown command
         //stop();  w// we need to ignore, not stop because otherwise we will stop when people are just saying stuff like "hi"
@@ -212,32 +215,53 @@ void ZagrosMotorsCmd::moveNoStop()
 // move forward or backward at the given speed, but do it without stopping at the end after a certain number of steps
 // added 2012-03-12 by alaina
 {
-   // use ramp up and ramp down  
+   // use ramp up and ramp down
     cmdSpeed = MIN_FORWARD_SPEED;
     while (cmdSpeed < DEFAULT_FORWARD_SPEED)  // ramp up to speed from a stop
     {
-       sendCommand();      
+       sendCommand();
        delay(RAMPUP_MOVE_DELAY);
-       cmdSpeed += DELTA_FORWARD_SPEED; 
+       cmdSpeed += DELTA_FORWARD_SPEED;
     }
+    for (int i = 1; i < numSteps; i++)  // as numSteps gets bigger, go both longer and faster
+    {
+      sendCommand();
+      delay(RAMPUP_MOVE_DELAY); // give some time for the command to work
+      if (cmdSpeed + DELTA_FORWARD_SPEED <= MAX_FORWARD_SPEED) cmdSpeed += DELTA_FORWARD_SPEED;
+    }
+    // numSteps here can range from 1 to 5, so we can get 0, 3MMT, 6MMT, and 9MMT
     sendCommand();
-	driving = DRIVING_STRAIGHT;
+    delay(MIN_MOVE_TIME * ((2 * numSteps) - 1));  // numSteps here can range from 1 to 5, so we can get 1, 3, 5, 7, 9
+    //delay(MIN_TURN_TIME * numSteps);
+    driving = DRIVING_STRAIGHT;
 }
 
 void ZagrosMotorsCmd::turnNoStop()
 // turn at the given speed, but do it without stopping at the end after a certain number of steps
 // added 2012-03-12 by alaina
 {
+   // use ramp up and ramp down
     cmdSpeed = MIN_TURN_SPEED;
     while (cmdSpeed < DEFAULT_TURN_SPEED)  // ramp up to speed from a stop
     {
-       sendCommand();      
+       sendCommand();
        delay(MIN_TURN_TIME);
-       cmdSpeed += DELTA_TURN_SPEED; 
+       cmdSpeed += DELTA_TURN_SPEED;
     }
+    for (int i = 1; i < numSteps; i++)  // as numSteps gets bigger, go both longer and faster
+    {
+      sendCommand();
+      delay(RAMPUP_TURN_DELAY); // give some time for the command to work
+      if (cmdSpeed + DELTA_TURN_SPEED <= MAX_TURN_SPEED) cmdSpeed += DELTA_TURN_SPEED;
+    }
+    // numSteps here can range from 1 to 5, so we can get 0, 3MMT, 6MMT, and 9MMT
     sendCommand();
+    delay(MIN_TURN_TIME * ((2 * numSteps) - 1));  // numSteps here can range from 1 to 5, so we can get 1, 3, 5, 7, 9
+    //delay(MIN_TURN_TIME * numSteps);
     driving = DRIVING_TURN;
+
 }
+
 
 void ZagrosMotorsCmd::slowStop()
 {
@@ -293,3 +317,4 @@ int main(int argc, char** argv)
   ZagrosMotorsCmd zagrosMotors;
   ros::spin();
 }
+

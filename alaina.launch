@@ -1,0 +1,17 @@
+<launch> 
+  
+  <node pkg="zagrosControl" type="zagrosMotorsAlaina" name="zagrosMotorsAlaina" >
+  </node>
+  
+  <node pkg="zagrosControl" type="zagrosServos" name="zagrosServos" >
+  </node>
+  
+  <node pkg="zagrosControl" type="serial_stream" name="serial_stream" >
+  </node>
+
+  <node pkg="captureSkypeChat" type="xmpp-message.py" name="xmpp_message" >
+  </node>
+
+  <node pkg="captureSkypeChat" type="ROS_telebot_single_cam.py" name="skype_cam" >
+  </node>
+</launch>

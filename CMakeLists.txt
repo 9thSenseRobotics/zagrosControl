@@ -33,4 +33,6 @@ link_libraries(serial)
 
 rosbuild_add_executable(zagrosServos src/zagrosServos.cpp)
 rosbuild_add_executable(zagrosMotors src/zagrosMotors.cpp)
+rosbuild_add_executable(zagrosMotorsAlaina src/zagrosMotorsAlaina.cpp)
 rosbuild_add_executable(serial_stream src/serial_stream.cpp)
+rosbuild_add_executable(serial_stream_sink src/serial_stream_sink.cpp)
